@@ -40,7 +40,57 @@ the tournament is unaffected.
 | `index.html` | Recommend-a-golfer form | **Recommendation** script |
 | `board.html` | TV leaderboard | **Squabbit** script |
 | `talk.html` | Trash talk, phones | **Squabbit** script |
-| `Code.gs` | Scraper + API (lives in Apps Script, not this repo) | — |
+| `cup.html` | Hodge Cup scoring — upload the export | **Squabbit** script |
+| `Code.gs` | Scraper + API (lives in Apps Script) | — |
+
+---
+
+## The Hodge Cup
+
+An overall winner, on top of World's #1 (low gross) and The Max (low net).
+
+| Source | Points |
+|---|---|
+| Ryder Cup match point | **×3** (max 4 → 12) |
+| Low gross finish | 10 / 7 / 5 / 3 / 2, then 1 for 6th–10th |
+| Low net finish | same ladder |
+| Skin | 0.5 each |
+
+**The gate: win at least one match point or you are not eligible.** Shoot the
+lights out, beat nobody, get nothing. Your name still shows on the board with
+your score — struck through. That's the point.
+
+**Where the numbers come from**
+
+Everything except match results is scraped automatically. Match results are
+*not on Squabbit's public page* — they only exist in the signed-in CSV export.
+So `cup.html` is the one manual step: sign in, export, drop the file on the
+page, hit publish. It reconstructs all 35 matches hole by hole and pushes the
+standings to the Sheet.
+
+**How the reconstruction works**
+
+The export gives hole-by-hole scores plus the format each round used
+(`Best Ball`, `Scramble`, `Singles Matchplay`) and groups players into
+foursomes by tee time. A foursome in a team round *is* a match — two a side.
+Team score on a hole is its better ball. Run match play, close it out when a
+lead exceeds the holes left.
+
+Validated against 2025: **rounds 2, 3 and 4 reconstruct exactly**, including
+all 14 singles at 5.5–8.5. Round 1 comes out Michigan 5, where Squabbit
+recorded 4 — one match (Scherf & Desmarteau vs Westerhouse & Hauter, 1 up on
+18) disagrees. Probably conceded or adjusted on the day. Worth remembering that
+this reconstruction is very good, not gospel.
+
+**Gross excludes the scramble.** A scramble score isn't yours — you and your
+partner post the same number. The page detects the scramble round from the
+format label. Drop it, and 2025's low gross comes out Will Crane +9 over Kellen
+VanDreumel +11, which is the result that actually happened.
+
+*Minor known discrepancy: the CSV credits Jason Bergman 12 skins, the public
+widget says 13. They disagree by one in R3. The Cup uses the CSV.*
+
+---
 
 ### ⚠️ Two different Apps Script projects
 
