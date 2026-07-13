@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Hodge Cup — Scoring</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#43301c; --green-deep:#1f140b; --green-soft:#5e4226;
+    --cream:#f4efe3; --cream-card:#fbf8f0;
+    --brass:#cba43f; --brass-deep:#9e7c22;
+    --ink:#2a2016; --muted:#807763; --line:#ded2ba; --err:#b4452f; --ok:#3f7d4e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:var(--green-deep);}
+  body{
+    font-family:'DM Sans',sans-serif;color:var(--ink);min-height:100vh;
+    background:radial-gradient(120% 80% at 50% -10%, var(--green-soft) 0%, var(--green) 45%, var(--green-deep) 100%);
+    padding:22px 16px 60px;display:flex;flex-direction:column;align-items:center;
+    -webkit-font-smoothing:antialiased;
+  }
+  .crest{text-align:center;color:var(--cream);margin:6px 0 22px;}
+  .crest .flag{font-size:30px;}
+  .crest .kicker{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--brass);margin-top:10px;font-weight:700;}
+  .crest h1{font-family:'Fraunces',serif;font-weight:900;font-size:34px;margin-top:6px;}
+  .crest .sub{font-size:14.5px;color:#cfc8b4;max-width:38ch;margin:12px auto 0;line-height:1.5;}
+
+  .card{
+    width:100%;max-width:760px;background:var(--cream-card);border-radius:18px;
+    padding:24px 22px;border:1px solid var(--line);margin-bottom:18px;
+    box-shadow:0 24px 50px -18px rgba(0,0,0,.6), 0 0 0 1px rgba(198,160,75,.25) inset;
+  }
+  h2{font-family:'Fraunces',serif;font-weight:900;font-size:19px;color:var(--green);margin-bottom:4px;}
+  .lede{font-size:13.5px;color:var(--muted);line-height:1.55;margin-bottom:16px;}
+
+  .drop{
+    border:2px dashed var(--line);border-radius:13px;padding:26px 18px;text-align:center;
+    cursor:pointer;transition:.15s;background:#fff;
+  }
+  .drop:hover,.drop.over{border-color:var(--brass);background:#fffdf6;}
+  .drop b{display:block;font-family:'Fraunces',serif;font-size:16px;color:var(--green);margin-bottom:5px;}
+  .drop span{font-size:13px;color:var(--muted);}
+  input[type=file]{display:none;}
+
+  .status{margin-top:14px;font-size:13.5px;padding:10px 12px;border-radius:9px;display:none;}
+  .status.show{display:block;}
+  .status.bad{background:#f7e4df;color:var(--err);border:1px solid #e6c4bb;}
+  .status.good{background:#e4f0e6;color:var(--ok);border:1px solid #c2ddc8;}
+
+  .checks{margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;line-height:1.9;}
+  .checks div{display:flex;gap:8px;}
+  .checks .ok{color:var(--ok);} .checks .no{color:var(--err);}
+
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th{
+    text-align:left;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);font-weight:700;padding:0 8px 8px;border-bottom:2px solid var(--line);
+  }
+  th.r,td.r{text-align:right;}
+  td{padding:9px 8px;border-bottom:1px solid #ece5d5;font-variant-numeric:tabular-nums;}
+  tr.gated td{opacity:.45;}
+  tr.gated td.why{opacity:1;color:var(--err);font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+  tr.win td{background:rgba(203,164,63,.14);font-weight:700;}
+  .pos{color:var(--muted);width:30px;}
+  .cup{font-family:'Fraunces',serif;font-weight:900;font-size:16px;}
+
+  button{
+    width:100%;font-family:'Fraunces',serif;font-weight:600;font-size:17px;color:var(--green-deep);
+    cursor:pointer;border:none;background:linear-gradient(180deg,#e3c275,var(--brass) 55%,var(--brass-deep));
+    border-radius:12px;padding:14px;box-shadow:0 8px 18px -8px rgba(160,125,46,.8);margin-top:6px;
+  }
+  button:disabled{opacity:.5;cursor:default;}
+  .hidden{display:none;}
+  .foot{color:#bdb6a3;font-size:12px;text-align:center;max-width:60ch;line-height:1.6;}
+  .foot a{color:var(--brass);}
+</style>
+</head>
+<body>
+
+<div class="crest">
+  <div class="flag">🏆</div>
+  <div class="kicker">The Hodge Memorial</div>
+  <h1>The Hodge Cup</h1>
+  <p class="sub">Match points ×3 · low gross · low net · skins. Win a match or you're not eligible.</p>
+</div>
+
+<div class="card">
+  <h2>Drop the Squabbit export</h2>
+  <p class="lede">
+    Sign in to Squabbit, export the tournament CSV, drop it here. Everything —
+    match results, the Cup, both trophies — is computed from that one file.
+    Nothing is sent anywhere until you hit publish.
+  </p>
+
+  <label class="drop" id="drop">
+    <b>Choose the CSV</b>
+    <span>or drag it onto this box</span>
+    <input type="file" id="file" accept=".csv,text/csv">
+  </label>
+
+  <div class="status" id="status"></div>
+  <div class="checks" id="checks"></div>
+</div>
+
+<div class="card hidden" id="cupCard">
+  <h2>The Hodge Cup</h2>
+  <p class="lede" id="cupLede"></p>
+  <table>
+    <thead>
+      <tr>
+        <th></th><th>Player</th>
+        <th class="r">Cup</th><th class="r">Match</th>
+        <th class="r">Gross</th><th class="r">Net</th><th class="r">Skins</th>
+      </tr>
+    </thead>
+    <tbody id="cupBody"></tbody>
+  </table>
+</div>
+
+<div class="card hidden" id="awardCard">
+  <h2>The Hardware</h2>
+  <p class="lede" id="awardLede"></p>
+  <table><tbody id="awardBody"></tbody></table>
+</div>
+
+<div class="card hidden" id="pubCard">
+  <h2>Publish</h2>
+  <p class="lede">Pushes the Cup, the trophies, and every match result to the Sheet.
+     The clubhouse TV picks it up within a minute.</p>
+  <button id="publish">Send It To The Board</button>
+  <div class="status" id="pubStatus"></div>
+</div>
+
+<p class="foot">
+  Match results aren't on Squabbit's public page — they only exist in the export.
+  So this is the one part of the board that isn't automatic. One upload after the
+  last group comes in, and everything else takes care of itself.
+</p>
+
+<script>
+/* ── the Squabbit script's /exec URL (same one board.html and talk.html use) ── */
+const ENDPOINT = "";
+
+/* ── Cup scoring ────────────────────────────────────────────────
+   Match point       ×3     (max 4 points -> 12)
+   Low gross finish  10/7/5/3/2, then 1 for 6th-10th   (scramble excluded)
+   Low net finish    same ladder
+   Skin              ×0.5
+   GATE: win at least 1 match point or you're not eligible.
+   Shoot the lights out and beat nobody, you get nothing.        */
+const CONFIG = {
+  MATCH_MULTIPLIER: 3,
+  LADDER: { 1:10, 2:7, 3:5, 4:3, 5:2 },   // 6th-10th get 1
+  SKIN_VALUE: 0.5,
+  GATE: 1,
+};
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+let RESULT = null;
+
+/* ---------- CSV ---------- */
+function parseCSV(text){
+  const rows = []; let row = [], cell = '', q = false;
+  for (let i = 0; i < text.length; i++){
+    const c = text[i];
+    if (q){
+      if (c === '"' && text[i+1] === '"'){ cell += '"'; i++; }
+      else if (c === '"') q = false;
+      else cell += c;
+    } else {
+      if (c === '"') q = true;
+      else if (c === ','){ row.push(cell); cell = ''; }
+      else if (c === '\n'){ row.push(cell); rows.push(row); row = []; cell = ''; }
+      else if (c !== '\r') cell += c;
+    }
+  }
+  if (cell || row.length){ row.push(cell); rows.push(row); }
+  return rows;
+}
+
+const num = s => {
+  const t = String(s||'').trim();
+  if (!t || t === '-') return null;
+  if (t.toUpperCase() === 'E') return 0;
+  const n = parseInt(t.replace('+',''), 10);
+  return isNaN(n) ? null : n;
+};
+
+/* Hole columns: 3..11 (front), 13..21 (back). 12 is Out, 22 is In, 23 is Total. */
+const HOLES = [3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21];
+const TOTAL_COL = 23;
+
+/* ---------- pull the file apart ---------- */
+function extract(rows){
+  const teams = {}, skins = {}, raw = {}, par = {};
+  const rounds = {1:[],2:[],3:[],4:[]};
+  let sec = null, side = null, rnd = null, group = null, player = null;
+  let tournament = 'Hodge Memorial';
+
+  rows.forEach((r, idx) => {
+    const c0 = (r[0]||'').trim();
+
+    if (idx === 1 && c0) tournament = c0;
+
+    if (['Players','Ryder Cup','Skins','Strokeplay'].includes(c0)){
+      sec = c0; side = null; rnd = null; return;
+    }
+    const m = c0.match(/^Round (\d)$/);
+    if (m){ sec = 'Round'; rnd = +m[1]; group = null; return; }
+
+    if (sec === 'Ryder Cup'){
+      if (c0 && c0 !== 'Team') side = c0;
+      else if (!c0 && (r[1]||'').trim() && side) teams[r[1].trim()] = side;
+      return;
+    }
+
+    /* Skins section is  Player,Round 1..4,Total  — no rank column, unlike the
+       widget. Name is col 0. */
+    if (sec === 'Skins' && c0 && c0 !== 'Player'){
+      const tot = num(r[r.length-1]);
+      if (tot !== null) skins[c0] = tot;
+      return;
+    }
+
+    if (sec === 'Round' && rnd){
+      // group header: course name + a tee time
+      if (c0 && (r[1]||'').match(/\d{1,2}:\d{2}\s*[AP]M/i)){
+        group = { order: [], p: {} }; rounds[rnd].push(group); return;
+      }
+      if (c0 === 'Par' && r[TOTAL_COL]) par[rnd] = parseInt(r[TOTAL_COL], 10);
+      if (!group) return;
+
+      // player line: name + tee
+      if (c0 && c0 !== 'S.I.' && c0 !== 'Par' && (r[1]||'').toLowerCase().includes('tee')){
+        player = c0;
+        group.order.push(player);
+        group.p[player] = {};
+        raw[player] = raw[player] || {};
+        const t = parseInt(r[TOTAL_COL], 10);
+        if (!isNaN(t)) raw[player][rnd] = t;
+        return;
+      }
+      // format line under the current player
+      if (!c0 && (r[1]||'').trim() && player && group.p[player]){
+        group.p[player][r[1].trim()] = HOLES.map(i => num(r[i]));
+      }
+    }
+  });
+
+  return { tournament, teams, skins, raw, par, rounds };
+}
+
+/* ---------- match play ----------
+   The match ends the moment a lead exceeds the holes left. Check AFTER the
+   hole is played — a player 1 up on the 18th tee has not won anything yet. */
+function matchplay(a, b){
+  let up = 0;
+  for (let h = 0; h < 18; h++){
+    if (a[h] !== null && b[h] !== null){
+      if (a[h] < b[h]) up++;
+      else if (b[h] < a[h]) up--;
+    }
+    const left = 17 - h;
+    if (Math.abs(up) > left){
+      return { up, margin: left ? Math.abs(up) + '&' + left : Math.abs(up) + ' up' };
+    }
+  }
+  return { up, margin: up === 0 ? 'AS' : Math.abs(up) + ' up' };
+}
+
+/* which format did each round use? */
+function formatOf(round){
+  const f = new Set();
+  round.forEach(g => g.order.forEach(p => Object.keys(g.p[p]).forEach(k => f.add(k))));
+  for (const name of ['Best Ball','Scramble','Singles Matchplay'])
+    if (f.has(name)) return name;
+  return null;
+}
+
+function compute(data){
+  const { teams, skins, raw, par, rounds } = data;
+  const mp = {}, matches = [];
+  Object.keys(teams).forEach(p => mp[p] = 0);
+
+  let scrambleRound = null;
+
+  for (const rnd of [1,2,3,4]){
+    const fmt = formatOf(rounds[rnd]);
+    if (!fmt) continue;
+    if (fmt === 'Scramble') scrambleRound = rnd;
+
+    rounds[rnd].forEach(g => {
+      const o = g.order;
+
+      if (fmt === 'Singles Matchplay'){
+        // a foursome is two singles matches, in the order they're listed
+        [[o[0],o[1]], [o[2],o[3]]].forEach(([a,b]) => {
+          if (!a || !b || teams[a] === teams[b]) return;
+          const { up, margin } = matchplay(g.p[a][fmt], g.p[b][fmt]);
+          const win = up > 0 ? a : up < 0 ? b : null;
+          if (win) mp[win] += 1; else { mp[a] += .5; mp[b] += .5; }
+          matches.push({ round: rnd, format: fmt, a: [a], b: [b],
+            winner: win ? teams[win] : 'Halved', margin });
+        });
+        return;
+      }
+
+      // 2v2: team's score on a hole is its better ball (in a scramble, the
+      // partners share a number, so min() is just that number)
+      const sides = {};
+      o.forEach(p => (sides[teams[p]] = sides[teams[p]] || []).push(p));
+      const names = Object.keys(sides).sort();
+      if (names.length !== 2) return;
+      const [ta, tb] = names, pa = sides[ta], pb = sides[tb];
+
+      const ball = ps => Array.from({length:18}, (_, h) => {
+        const v = ps.map(p => (g.p[p][fmt]||[])[h]).filter(x => x !== null && x !== undefined);
+        return v.length ? Math.min(...v) : null;
+      });
+
+      const { up, margin } = matchplay(ball(pa), ball(pb));
+      if (up > 0)      pa.forEach(p => mp[p] += 1);
+      else if (up < 0) pb.forEach(p => mp[p] += 1);
+      else             [...pa, ...pb].forEach(p => mp[p] += .5);
+
+      matches.push({ round: rnd, format: fmt, a: pa, b: pb,
+        winner: up > 0 ? ta : up < 0 ? tb : 'Halved', margin });
+    });
+  }
+
+  // gross: real strokes, scramble dropped (a scramble score isn't yours)
+  const gross = {};
+  Object.keys(raw).forEach(p => {
+    let t = 0, any = false;
+    Object.keys(raw[p]).forEach(k => {
+      const rn = +k;
+      if (rn === scrambleRound) return;
+      if (par[rn] == null) return;
+      t += raw[p][rn] - par[rn]; any = true;
+    });
+    if (any) gross[p] = t;
+  });
+
+  // net: Squabbit's own strokeplay, every round
+  const net = {};
+  for (const rnd of [1,2,3,4])
+    rounds[rnd].forEach(g => g.order.forEach(p => {
+      const s = g.p[p]['Stroke'];
+      if (!s) return;
+      net[p] = (net[p] || 0) + s.reduce((a,b) => a + (b || 0), 0);
+    }));
+
+  const rank = obj => {
+    const r = {};
+    Object.entries(obj).sort((x,y) => x[1] - y[1]).forEach(([p], i) => r[p] = i + 1);
+    return r;
+  };
+  const gr = rank(gross), nr = rank(net);
+  const ladder = r => CONFIG.LADDER[r] || (r <= 10 ? 1 : 0);
+
+  const cup = Object.keys(teams).map(p => {
+    const points = mp[p] * CONFIG.MATCH_MULTIPLIER
+                 + ladder(gr[p] || 99) + ladder(nr[p] || 99)
+                 + (skins[p] || 0) * CONFIG.SKIN_VALUE;
+    return {
+      name: p, team: teams[p], points: Math.round(points * 10) / 10,
+      mp: mp[p], gross: gross[p], grossRank: gr[p], net: net[p], netRank: nr[p],
+      skins: skins[p] || 0, eligible: mp[p] >= CONFIG.GATE
+    };
+  }).sort((a,b) => b.points - a.points);
+
+  let place = 0;
+  cup.forEach(c => { c.place = c.eligible ? ++place : null; });
+
+  const low = (obj, exclude) => {
+    const e = Object.entries(obj).sort((a,b) => a[1] - b[1])[0];
+    return e ? { who: e[0], score: e[1] > 0 ? '+' + e[1] : String(e[1]) } : null;
+  };
+
+  return {
+    tournament: data.tournament,
+    updatedAt: new Date().toISOString(),
+    scrambleRound, cup, matches,
+    awards: { worldsNo1: low(gross), theMax: low(net) },
+    teamScore: (() => {
+      const t = {};
+      matches.forEach(m => {
+        if (m.winner === 'Halved'){
+          t[teams[m.a[0]]] = (t[teams[m.a[0]]] || 0) + .5;
+          t[teams[m.b[0]]] = (t[teams[m.b[0]]] || 0) + .5;
+        } else t[m.winner] = (t[m.winner] || 0) + 1;
+      });
+      return t;
+    })()
+  };
+}
+
+/* ---------- render ---------- */
+function show(res){
+  RESULT = res;
+
+  const teamLine = Object.entries(res.teamScore)
+    .map(([t,v]) => t + ' ' + v).join('  —  ');
+
+  $('checks').innerHTML =
+    row(true,  Object.keys(res.cup).length + ' players, ' + res.matches.length + ' matches reconstructed') +
+    row(res.scrambleRound, res.scrambleRound
+        ? 'Round ' + res.scrambleRound + ' detected as the scramble — dropped from gross'
+        : 'No scramble round found') +
+    row(true, 'Match play total: ' + teamLine);
+
+  $('cupLede').textContent =
+    'Match points ×3, gross and net ladders, half a point a skin. ' +
+    'Win at least one match point or you are not eligible.';
+
+  $('cupBody').innerHTML = res.cup.slice(0, 16).map(c => {
+    const cls = !c.eligible ? 'gated' : (c.place === 1 ? 'win' : '');
+    return '<tr class="' + cls + '">' +
+      '<td class="pos">' + (c.eligible ? c.place + '.' : '✗') + '</td>' +
+      '<td>' + esc(c.name) + (!c.eligible ? ' <span class="why">— beat nobody</span>' : '') + '</td>' +
+      '<td class="r cup">' + c.points.toFixed(1) + '</td>' +
+      '<td class="r">' + c.mp + '</td>' +
+      '<td class="r">#' + (c.grossRank||'—') + ' ' + sign(c.gross) + '</td>' +
+      '<td class="r">#' + (c.netRank||'—') + ' ' + sign(c.net) + '</td>' +
+      '<td class="r">' + c.skins + '</td>' +
+    '</tr>';
+  }).join('');
+
+  const a = res.awards;
+  $('awardBody').innerHTML =
+    trophy("World's #1", 'Low gross · scramble excluded', a.worldsNo1) +
+    trophy('The Max', 'Low net · all four rounds', a.theMax);
+  $('awardLede').textContent = 'Computed straight off the scorecards.';
+
+  ['cupCard','awardCard','pubCard'].forEach(id => $(id).classList.remove('hidden'));
+}
+
+const sign = v => v == null ? '—' : (v > 0 ? '+' + v : String(v));
+const row = (ok, txt) => '<div><span class="' + (ok?'ok':'no') + '">' + (ok?'✓':'✗') + '</span>' + esc(txt) + '</div>';
+const trophy = (name, blurb, w) =>
+  '<tr><td><b>' + esc(name) + '</b><br><span style="color:var(--muted);font-size:12.5px">' + esc(blurb) + '</span></td>' +
+  '<td class="r cup">' + (w ? esc(w.who) : '—') + '</td>' +
+  '<td class="r">' + (w ? esc(w.score) : '') + '</td></tr>';
+
+/* ---------- file in ---------- */
+function handle(file){
+  const st = $('status');
+  const fr = new FileReader();
+  fr.onload = () => {
+    try{
+      const data = extract(parseCSV(fr.result));
+      if (!Object.keys(data.teams).length) throw new Error('No Ryder Cup teams in that file.');
+      show(compute(data));
+      st.className = 'status good show';
+      st.textContent = 'Parsed ' + esc(file.name);
+    }catch(err){
+      st.className = 'status bad show';
+      st.textContent = "Couldn't read that: " + err.message;
+      ['cupCard','awardCard','pubCard'].forEach(id => $(id).classList.add('hidden'));
+    }
+  };
+  fr.readAsText(file);
+}
+
+$('file').addEventListener('change', e => e.target.files[0] && handle(e.target.files[0]));
+['dragover','dragenter'].forEach(ev => $('drop').addEventListener(ev, e => {
+  e.preventDefault(); $('drop').classList.add('over');
+}));
+['dragleave','drop'].forEach(ev => $('drop').addEventListener(ev, e => {
+  e.preventDefault(); $('drop').classList.remove('over');
+}));
+$('drop').addEventListener('drop', e => {
+  const f = e.dataTransfer.files[0];
+  if (f) handle(f);
+});
+
+/* ---------- publish ---------- */
+$('publish').addEventListener('click', async () => {
+  if (!RESULT) return;
+  const st = $('pubStatus');
+
+  if (!ENDPOINT){
+    st.className = 'status bad show';
+    st.textContent = 'No endpoint set. Paste the Squabbit script /exec URL into ENDPOINT.';
+    return;
+  }
+
+  $('publish').disabled = true;
+  $('publish').textContent = 'Sending…';
+  try{
+    const res = await fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'cup', cup: RESULT })
+    });
+    const d = await res.json();
+    if (!d.ok) throw new Error(d.error || 'Rejected.');
+    st.className = 'status good show';
+    st.textContent = "It's on the board.";
+  }catch(err){
+    st.className = 'status bad show';
+    st.textContent = "Didn't send: " + err.message;
+  }finally{
+    $('publish').disabled = false;
+    $('publish').textContent = 'Send It To The Board';
+  }
+});
+</script>
+</body>
+</html>
