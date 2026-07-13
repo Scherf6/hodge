@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hodge Memorial — Clubhouse Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* ---------------------------------------------------------------
+     HODGE MEMORIAL — clubhouse board
+     Designed to be read from across a room. Everything scales in vmin
+     so it fills a 55" TV or a laptop without touching a breakpoint.
+     --------------------------------------------------------------- */
+
+  :root{
+    --board:    #0A1411;   /* deep pine, almost black — a dim room at 10pm */
+    --board-2:  #10201A;
+    --rule:     #1E3A30;
+    --bone:     #EDE7D8;   /* old scoreboard paint */
+    --dim:      #6B8078;
+    --maize:    #FFCB05;   /* Michigan */
+    --red:      #D5233B;   /* USA */
+    --live:     #4ADE80;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  body{
+    background:var(--board);
+    color:var(--bone);
+    font-family:'IBM Plex Mono', ui-monospace, monospace;
+    height:100vh;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    /* faint vignette so the center reads brighter from a distance */
+    background-image:radial-gradient(ellipse at 50% 35%, #14261F 0%, var(--board) 70%);
+  }
+
+  /* ---------- header ---------- */
+  header{
+    display:flex; align-items:baseline; justify-content:space-between;
+    padding:1.6vmin 2.4vmin;
+    border-bottom:2px solid var(--rule);
+    flex:0 0 auto;
+  }
+  .wordmark{
+    font-family:'Anton', Impact, sans-serif;
+    font-size:3.1vmin; letter-spacing:.06em; text-transform:uppercase;
+    line-height:1;
+  }
+  .wordmark span{ color:var(--dim); }
+  .venue{
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:1.9vmin; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--dim); font-weight:600;
+  }
+  .status{ display:flex; align-items:center; gap:1.2vmin; }
+  .dot{
+    width:1.1vmin; height:1.1vmin; border-radius:50%;
+    background:var(--live);
+    box-shadow:0 0 0 0 rgba(74,222,128,.6);
+    animation:pulse 2.4s infinite;
+  }
+  .dot.cold{ background:var(--dim); animation:none; }
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 rgba(74,222,128,.5); }
+    70%{ box-shadow:0 0 0 1.6vmin rgba(74,222,128,0); }
+    100%{ box-shadow:0 0 0 0 rgba(74,222,128,0); }
+  }
+  .stamp{
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:1.7vmin; letter-spacing:.16em; text-transform:uppercase; color:var(--dim);
+  }
+
+  /* ---------- THE SIGNATURE: the cup ----------
+     A Ryder Cup is a tug of war, so the hero is a rope, not a table.
+     Whoever's past the center line has the cup in hand. */
+  .cup{ flex:0 0 auto; padding:2.4vmin 2.4vmin 1.8vmin; }
+  .cupRow{ display:flex; align-items:center; justify-content:space-between; }
+  .team{ display:flex; align-items:baseline; gap:1.4vmin; }
+  .team.right{ flex-direction:row-reverse; }
+  .teamName{
+    font-family:'Anton', Impact, sans-serif;
+    font-size:4.2vmin; letter-spacing:.03em; text-transform:uppercase; line-height:1;
+  }
+  .teamScore{
+    font-family:'Anton', Impact, sans-serif;
+    font-size:8.4vmin; line-height:.85; font-variant-numeric:tabular-nums;
+  }
+  .mi .teamName, .mi .teamScore{ color:var(--maize); }
+  .us .teamName, .us .teamScore{ color:var(--red); }
+
+  .cupState{
+    text-align:center;
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:2.2vmin; font-weight:700; letter-spacing:.24em; text-transform:uppercase;
+    color:var(--bone);
+  }
+  .cupState small{ display:block; font-size:1.5vmin; letter-spacing:.18em; color:var(--dim); margin-top:.4vmin; font-weight:600; }
+
+  .rope{
+    position:relative; margin-top:1.8vmin;
+    height:1.8vmin; background:var(--board-2);
+    border:2px solid var(--rule); border-radius:.9vmin; overflow:hidden;
+  }
+  .rope .fill{
+    position:absolute; inset:0 auto 0 0;
+    background:var(--maize);
+    transition:width .9s cubic-bezier(.2,.7,.2,1);
+  }
+  .rope .fill.us{ inset:0 0 0 auto; background:var(--red); }
+  /* the line you have to cross to win it */
+  .rope .center{
+    position:absolute; left:50%; top:-.6vmin; bottom:-.6vmin;
+    width:2px; background:var(--bone); transform:translateX(-1px);
+  }
+
+  /* ---------- rotating board ---------- */
+  main{ flex:1 1 auto; padding:0 2.4vmin 1.2vmin; min-height:0; display:flex; flex-direction:column; }
+
+  .boardHead{
+    display:flex; align-items:center; gap:1.6vmin;
+    padding:1.2vmin 0 .9vmin;
+  }
+  .boardName{
+    font-family:'Anton', Impact, sans-serif;
+    font-size:2.8vmin; text-transform:uppercase; letter-spacing:.05em;
+  }
+  .pips{ display:flex; gap:.7vmin; margin-left:auto; }
+  .pip{ width:3.4vmin; height:.5vmin; background:var(--rule); border-radius:1px; }
+  .pip.on{ background:var(--bone); }
+
+  .grid{
+    flex:1 1 auto; min-height:0;
+    display:grid; grid-template-columns:1fr 1fr; gap:0 3.2vmin;
+    align-content:start;
+    animation:fade .5s ease;
+  }
+  @keyframes fade{ from{ opacity:0; transform:translateY(.8vmin);} to{ opacity:1; transform:none;} }
+
+  .col{ display:flex; flex-direction:column; }
+
+  .hrow, .prow{
+    display:grid;
+    grid-template-columns: 3.6vmin 1fr repeat(4, 3.6vmin) 5vmin;
+    gap:.8vmin; align-items:center;
+    padding:.62vmin .8vmin;
+  }
+  .hrow{
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:1.6vmin; font-weight:700; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--dim); border-bottom:2px solid var(--rule);
+  }
+  .prow{
+    font-size:1.95vmin;
+    border-bottom:1px solid rgba(30,58,48,.5);
+  }
+  .prow:nth-child(even){ background:rgba(255,255,255,.018); }
+  /* top three get the paint */
+  .prow.p1{ background:rgba(255,203,5,.12); }
+  .prow.p1 .nm{ color:var(--maize); font-weight:600; }
+  .prow.p2, .prow.p3{ background:rgba(255,255,255,.05); }
+
+  .rk{ color:var(--dim); font-size:1.7vmin; text-align:right; font-variant-numeric:tabular-nums; }
+  .prow.p1 .rk{ color:var(--maize); }
+  .nm{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rd{ text-align:center; color:var(--dim); font-size:1.65vmin; font-variant-numeric:tabular-nums; }
+  .tot{ text-align:right; font-weight:600; font-variant-numeric:tabular-nums; }
+
+  /* ---------- ticker ---------- */
+  footer{
+    flex:0 0 auto;
+    border-top:2px solid var(--rule);
+    background:var(--board-2);
+    display:flex; align-items:center; gap:2vmin;
+    padding:1.1vmin 2.4vmin;
+    overflow:hidden;
+  }
+  .tickerLabel{
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:1.6vmin; font-weight:700; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--board); background:var(--maize);
+    padding:.4vmin 1vmin; border-radius:2px; white-space:nowrap;
+  }
+  .tickerTrack{ flex:1; overflow:hidden; white-space:nowrap; }
+  .tickerTrack .run{ display:inline-block; padding-left:100%; animation:slide 42s linear infinite; }
+  .tickerTrack .run em{ color:var(--dim); font-style:normal; padding:0 1.6vmin; }
+  @keyframes slide{ from{ transform:translateX(0);} to{ transform:translateX(-100%);} }
+  .tickerTrack span{ font-size:1.85vmin; }
+
+  .empty{ color:var(--dim); text-align:center; padding:6vmin; font-size:2.2vmin; }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation:none !important; transition:none !important; }
+    .tickerTrack .run{ padding-left:0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="wordmark">Hodge Memorial <span id="yr"></span></div>
+    <div class="venue" id="venue">Shanty Creek — Northern Michigan</div>
+  </div>
+  <div class="status">
+    <span class="dot" id="dot"></span>
+    <span class="stamp" id="stamp">connecting</span>
+  </div>
+</header>
+
+<section class="cup" id="cup" hidden>
+  <div class="cupRow">
+    <div class="team mi" id="teamA">
+      <div class="teamScore" id="scoreA">—</div>
+      <div class="teamName" id="nameA">—</div>
+    </div>
+    <div class="cupState">
+      <div id="cupVerdict">—</div>
+      <small id="cupSub"></small>
+    </div>
+    <div class="team right us" id="teamB">
+      <div class="teamScore" id="scoreB">—</div>
+      <div class="teamName" id="nameB">—</div>
+    </div>
+  </div>
+  <div class="rope">
+    <div class="fill" id="fillA"></div>
+    <div class="fill us" id="fillB"></div>
+    <div class="center"></div>
+  </div>
+</section>
+
+<main>
+  <div class="boardHead">
+    <div class="boardName" id="boardName">Loading</div>
+    <div class="pips" id="pips"></div>
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer>
+  <span class="tickerLabel">Trash Talk</span>
+  <div class="tickerTrack">
+    <div class="run" id="ticker"></div>
+  </div>
+</footer>
+
+<script>
+/* =================================================================
+   CONFIG
+   ================================================================= */
+const CONFIG = {
+  // Paste your Apps Script /exec URL here. Leave empty to run on demo data.
+  API_URL: '',
+
+  ROTATE_MS:  14000,   // how long each board holds on screen
+  REFRESH_MS: 60000,   // how often we re-pull from the Sheet
+
+  // The Ryder Cup board is the hero; these are the boards that rotate below it.
+  ROTATING: ['Skins', 'Strokeplay'],
+
+  TEAM_COLORS: { 'Michigan': 'maize', 'USA': 'red' },
+};
+
+/* Trash talk now comes down inside the payload, posted from talk.html. */
+
+/* Demo payload — the real 2025 board, so this thing renders before it's wired. */
+const DEMO = {
+  tournament: 'Hodge Memorial 2025', live: true, fetchedAt: new Date().toISOString(),
+  talk: [
+    { name:'Tom Monaweck', message:'Cadieux played the Summit like he owed it money.' },
+    { name:'Ande Scherf',  message:'Max Smith opens +38 at Hawk\'s Eye and still wins 10 skins. Explain that.' },
+    { name:'Will Crane',   message:'Jon Collins has now three-putted on four separate golf courses.' },
+  ],
+  boards: [
+    { name:'Ryder Cup', headers:['#','Name','R1','R2','R3','R4','Tot'], rows:[
+      ['T1','Michigan','4','5','3','5.5','17.5'],
+      ['T1','USA','3','2','4','8.5','17.5'],
+    ]},
+    { name:'Skins', headers:['#','Name','R1','R2','R3','R4','Tot'], rows:[
+      ['1','Jason Bergman','0','0','11','2','13'],['2','Joe Suchecki','6','1','0','3','10'],
+      ['3','Max Smith','0','0','8','2','10'],['4','Kellen VanDreumel','3','5','0','1','9'],
+      ['5','Michael Cadieux','3','3','0','0','6'],['6','Drew Brackett','0','0','0','5','5'],
+      ['T7','Chris McGee','0','4','0','0','4'],['T7','Tom Monaweck','0','4','0','0','4'],
+      ['9','Pat Brackett','0','0','0','3','3'],['10','Jeff Simmons','0','0','0','2','2'],
+      ['11','Luke Westerhouse','2','0','0','0','2'],['T12','Brad Desnoyers','1','0','0','0','1'],
+      ['T12','Jon Collins','0','0','1','0','1'],['T12','Rob Crane','1','0','0','0','1'],
+      ['T15','Adam Morocco','0','0','0','0','0'],['T15','Josh Herder','0','0','0','0','0'],
+      ['T15','Will Crane','0','0','0','0','0'],['T15','Gary Aschcraft','0','0','0','0','0'],
+      ['T15','Ross Desnoyers','0','0','0','0','0'],['T15','Ande Scherf','0','0','0','0','0'],
+      ['T15','Jesse Frifeldt','0','0','0','0','0'],['T15','Blake Vipond','0','0','0','0','0'],
+      ['T15','Jim Brackett','0','0','0','0','0'],['T15','Dan Abbott','0','0','0','0','0'],
+      ['T15','Jeff Hauter','0','0','0','0','0'],['T15','Ross Gray','0','0','0','0','0'],
+      ['T15','Davis McFarlane','0','0','0','0','0'],['T15','Blake Desmarteau','0','0','0','0','0'],
+    ]},
+    { name:'Strokeplay', headers:['#','Name','R1','R2','R3','R4','Tot'], rows:[
+      ['1','Michael Cadieux','-8','+1','-26','+4','-29'],['2','Tom Monaweck','+8','-4','-19','-3','-18'],
+      ['3','Jason Bergman','+1','+1','-23','+3','-18'],['4','Davis McFarlane','-4','-1','-9','+2','-12'],
+      ['5','Josh Herder','-1','-1','-17','+10','-9'],['6','Joe Suchecki','E','-3','-4','+2','-5'],
+      ['7','Pat Brackett','+6','-1','-15','+6','-4'],['8','Drew Brackett','-2','+8','-14','+5','-3'],
+      ['9','Adam Morocco','+8','+8','-17','-1','-2'],['10','Kellen VanDreumel','E','E','-4','+3','-1'],
+      ['11','Ross Gray','-2','+1','+2','+1','+2'],['12','Will Crane','E','-1','-2','+5','+2'],
+      ['13','Ross Desnoyers','+1','+6','-12','+8','+3'],['14','Dan Abbott','+6','+7','-11','+1','+3'],
+      ['15','Ande Scherf','+11','+2','-11','+2','+4'],['16','Jesse Frifeldt','+7','+8','-8','E','+7'],
+      ['17','Blake Desmarteau','+2','+12','-18','+11','+7'],['18','Brad Desnoyers','+10','+12','-21','+8','+9'],
+      ['19','Jeff Simmons','+2','+8','-5','+5','+10'],['20','Jon Collins','+17','+11','-27','+12','+13'],
+      ['21','Jim Brackett','+8','+16','-22','+11','+13'],['22','Jeff Hauter','+9','+9','-13','+9','+14'],
+      ['23','Gary Aschcraft','+2','+11','-14','+16','+15'],['24','Luke Westerhouse','+6','+13','-7','+7','+19'],
+      ['25','Blake Vipond','+11','+8','E','+2','+21'],['26','Rob Crane','+13','+10','-11','+10','+22'],
+      ['27','Chris McGee','+7','+23','-16','+9','+23'],['28','Max Smith','+23','+11','-14','+3','+23'],
+    ]},
+  ]
+};
+
+/* =================================================================
+   STATE
+   ================================================================= */
+let payload = null;
+let boardIdx = 0;
+
+/* =================================================================
+   DATA
+   ================================================================= */
+async function load(){
+  if (!CONFIG.API_URL){
+    payload = DEMO;
+    render();
+    setStamp('demo data — 2025', false);
+    return;
+  }
+  try{
+    const res = await fetch(CONFIG.API_URL, { cache:'no-store' });
+    payload = await res.json();
+    render();
+    setStamp(payload.live ? 'live' : 'not started', payload.live);
+  }catch(err){
+    setStamp('reconnecting', false);   // keep the last good board on screen
+  }
+}
+
+function setStamp(text, live){
+  const stamp = document.getElementById('stamp');
+  const when  = payload && payload.fetchedAt ? ' · ' + ago(payload.fetchedAt) : '';
+  stamp.textContent = text + when;
+  document.getElementById('dot').classList.toggle('cold', !live);
+}
+
+function ago(iso){
+  const mins = Math.round((Date.now() - new Date(iso)) / 60000);
+  if (mins < 1)  return 'just now';
+  if (mins < 60) return mins + 'm ago';
+  return Math.round(mins/60) + 'h ago';
+}
+
+const boardBy = name => (payload.boards || []).find(b => b.name === name);
+
+/* =================================================================
+   RENDER
+   ================================================================= */
+function render(){
+  const year = (payload.tournament.match(/\b(20\d\d)\b/) || [])[1] || '';
+  document.getElementById('yr').textContent = year;
+
+  renderCup();
+  renderTicker();
+  renderBoard();
+}
+
+/* The hero. Team rows are the ones with a real rank; players carry '-'. */
+function renderCup(){
+  const rc = boardBy('Ryder Cup');
+  const cup = document.getElementById('cup');
+  if (!rc){ cup.hidden = true; return; }
+
+  const teams = rc.rows.filter(r => r[0] && r[0] !== '-').slice(0,2);
+  if (teams.length < 2){ cup.hidden = true; return; }
+  cup.hidden = false;
+
+  const [a, b] = teams;
+  const nameA = a[1], nameB = b[1];
+  const totA = parseFloat(a[a.length-1]) || 0;
+  const totB = parseFloat(b[b.length-1]) || 0;
+  const played = totA + totB;
+
+  document.getElementById('nameA').textContent  = nameA;
+  document.getElementById('nameB').textContent  = nameB;
+  document.getElementById('scoreA').textContent = fmtPts(totA);
+  document.getElementById('scoreB').textContent = fmtPts(totB);
+
+  // The rope: each side's share of what's been decided so far.
+  const pctA = played ? (totA / played) * 100 : 50;
+  document.getElementById('fillA').style.width = pctA + '%';
+  document.getElementById('fillB').style.width = (100 - pctA) + '%';
+
+  const lead = Math.abs(totA - totB);
+  const verdict = document.getElementById('cupVerdict');
+  const sub     = document.getElementById('cupSub');
+
+  if (totA === totB){
+    verdict.textContent = 'All Square';
+    sub.textContent = played ? fmtPts(played) + ' points played' : 'no points on the board';
+  } else {
+    const front = totA > totB ? nameA : nameB;
+    verdict.textContent = front + ' by ' + fmtPts(lead);
+    sub.textContent = fmtPts(played) + ' points played';
+  }
+}
+
+const fmtPts = n => (n % 1 === 0 ? String(n) : n.toFixed(1));
+
+function renderTicker(){
+  const t = document.getElementById('ticker');
+  const talk = payload.talk || [];
+
+  if (!talk.length){
+    t.innerHTML = '<span style="color:var(--dim)">Nobody has said anything yet. Cowards.</span>';
+    return;
+  }
+
+  const line = talk.map(p =>
+    '<span>' + esc(p.message) + '<em>&mdash; ' + esc(p.name) + '</em></span>'
+  ).join('<em>&bull;</em>');
+
+  t.innerHTML = line + '<em>&bull;</em>' + line;   // doubled so the loop is seamless
+}
+
+function renderBoard(){
+  const names = CONFIG.ROTATING.filter(boardBy);
+  const grid  = document.getElementById('grid');
+  const pips  = document.getElementById('pips');
+
+  if (!names.length){
+    document.getElementById('boardName').textContent = payload.live ? 'No boards' : 'Not started';
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1">' +
+      (payload.live ? 'Squabbit is up but returned no boards.' : 'Scores post here once the first round is in the books.') +
+      '</div>';
+    pips.innerHTML = '';
+    return;
+  }
+
+  const board = boardBy(names[boardIdx % names.length]);
+  document.getElementById('boardName').textContent = board.name;
+
+  pips.innerHTML = names.map((_, i) =>
+    '<div class="pip' + (i === boardIdx % names.length ? ' on' : '') + '"></div>').join('');
+
+  // 28 names don't fit down one side of a TV. Split them.
+  const half = Math.ceil(board.rows.length / 2);
+  const cols = [board.rows.slice(0, half), board.rows.slice(half)];
+
+  grid.innerHTML = cols.map(rows =>
+    '<div class="col">' + headRow(board.headers) + rows.map(playerRow).join('') + '</div>'
+  ).join('');
+
+  // restart the entrance animation
+  grid.style.animation = 'none'; void grid.offsetWidth; grid.style.animation = '';
+}
+
+function headRow(h){
+  return '<div class="hrow">' +
+    '<div style="text-align:right">' + esc(h[0]) + '</div>' +
+    '<div>' + esc(h[1]) + '</div>' +
+    h.slice(2,6).map(x => '<div style="text-align:center">' + esc(x) + '</div>').join('') +
+    '<div style="text-align:right">' + esc(h[6] || 'Tot') + '</div>' +
+  '</div>';
+}
+
+function playerRow(r){
+  const rank = (r[0] || '').replace('T','');
+  const cls  = rank === '1' ? ' p1' : rank === '2' ? ' p2' : rank === '3' ? ' p3' : '';
+  return '<div class="prow' + cls + '">' +
+    '<div class="rk">' + esc(r[0]) + '</div>' +
+    '<div class="nm">' + esc(r[1]) + '</div>' +
+    r.slice(2,6).map(x => '<div class="rd">' + esc(x) + '</div>').join('') +
+    '<div class="tot">' + esc(r[6] || '') + '</div>' +
+  '</div>';
+}
+
+const esc = s => String(s == null ? '' : s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* =================================================================
+   LOOPS
+   ================================================================= */
+load();
+setInterval(load, CONFIG.REFRESH_MS);
+setInterval(() => { if (payload){ boardIdx++; renderBoard(); } }, CONFIG.ROTATE_MS);
+</script>
+</body>
+</html>
