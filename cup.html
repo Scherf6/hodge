@@ -74,6 +74,18 @@
   }
   button:disabled{opacity:.5;cursor:default;}
   .hidden{display:none;}
+  .nav{
+    display:flex; flex-wrap:wrap; justify-content:center; gap:10px;
+    margin:6px 0 22px; width:100%; max-width:760px;
+  }
+  .nav a{
+    flex:1; min-width:130px; text-align:center;
+    font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--brass); text-decoration:none;
+    padding:11px 8px; border:1px solid rgba(198,160,75,.35); border-radius:10px;
+    transition:.15s;
+  }
+  .nav a:hover{ background:rgba(198,160,75,.12); border-color:var(--brass); }
   .foot{color:#bdb6a3;font-size:12px;text-align:center;max-width:60ch;line-height:1.6;}
   .foot a{color:var(--brass);}
 </style>
@@ -133,6 +145,12 @@
   <button id="publish">Send It To The Board</button>
   <div class="status" id="pubStatus"></div>
 </div>
+
+<nav class="nav">
+  <a href="./board.html">Leaderboard</a>
+  <a href="./talk.html">Trash Talk</a>
+  <a href="./index.html">Recommend a golfer</a>
+</nav>
 
 <p class="foot">
   Match results aren't on Squabbit's public page — they only exist in the export.
