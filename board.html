@@ -22,24 +22,25 @@
     --dim:      #6B8078;
     --live:     #4ADE80;
 
-    /* MICHIGAN — the state's teams, in one rope.
-       Maize leads because it's the one you can read from the kitchen. */
-    --mi:       #FFCB05;   /* Maize — Wolverines */
-    --mi-2:     #0076B6;   /* Honolulu Blue — Lions */
-    --mi-3:     #18453B;   /* Spartan Green — Michigan State */
+    /* The board's own color. Hodge brass, lifted for a dark background —
+       the same brass as the crest on every other page. Team colors belong
+       to teams; the furniture belongs to the tournament. */
+    --accent:   #E3B94F;
+    --accent-t: rgba(227,185,79,.13);   /* the same, as a wash */
+
+    /* MICHIGAN — Detroit pro, in one rope.
+       Honolulu Blue leads. Tigers Orange is gorgeous but reads as red from
+       across a room, and USA is already red. It rides in the middle instead. */
+    --mi:       #0076B6;   /* Honolulu Blue — Lions */
+    --mi-2:     #FA4616;   /* Orange — Tigers */
+    --mi-3:     #1D42BA;   /* Royal — Pistons */
+    --mi-ink:   #37A7E6;   /* Honolulu, lifted, for type at distance */
 
     /* USA — Old Glory, actual flag values. */
     --us:       #B22234;   /* Old Glory Red */
     --us-2:     #FFFFFF;   /* White */
     --us-3:     #3C3B6E;   /* Old Glory Blue */
-
-    /* aliases so the rest of the sheet reads plainly */
-    --maize:    var(--mi);
-    --red:      var(--us);
-
-    /* Old Glory Red is correct but muddy as type on near-black.
-       True flag color lives in the rope; this is the one you read. */
-    --us-ink:   #DB3149;
+    --us-ink:   #DB3149;   /* flag red is muddy as type on near-black */
   }
 
   *{ box-sizing:border-box; margin:0; padding:0; }
@@ -74,7 +75,18 @@
     font-size:1.9vmin; letter-spacing:.22em; text-transform:uppercase;
     color:var(--dim); font-weight:600;
   }
-  .status{ display:flex; align-items:center; gap:1.2vmin; }
+  .status{ display:flex; align-items:center; gap:1.8vmin; }
+  /* Useful on a phone or laptop. On the TV it's just quiet chrome — the
+     link that actually matters up there is the one printed in the ticker. */
+  .nav{ display:flex; gap:1.4vmin; margin-right:.6vmin; }
+  .nav a{
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:1.6vmin; font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--dim); text-decoration:none;
+    padding:.5vmin 1vmin; border:1px solid var(--rule); border-radius:.4vmin;
+    transition:.15s;
+  }
+  .nav a:hover{ color:var(--accent); border-color:var(--accent); }
   .dot{
     width:1.1vmin; height:1.1vmin; border-radius:50%;
     background:var(--live);
@@ -118,7 +130,7 @@
     font-family:'Anton', Impact, sans-serif;
     font-size:8.4vmin; line-height:.85; font-variant-numeric:tabular-nums;
   }
-  .mi .teamName, .mi .teamScore{ color:var(--mi); }
+  .mi .teamName, .mi .teamScore{ color:var(--mi-ink); }
   .us .teamName, .us .teamScore{ color:var(--us-ink); }
 
   .cupState{
@@ -134,14 +146,14 @@
     height:2.2vmin; background:var(--board-2);
     border:2px solid var(--rule); border-radius:1.1vmin; overflow:hidden;
   }
-  /* Michigan pulls from the left. Green at the back, maize at the sharp end —
+  /* Michigan pulls from the left. Pistons royal at the back, Honolulu at the
      the leading edge is the color you're meant to read at a glance. */
   .rope .fill{
     position:absolute; inset:0 auto 0 0;
     background:linear-gradient(90deg,
-      var(--mi-3) 0%, var(--mi-3) 18%,
-      var(--mi-2) 46%,
-      var(--mi)   82%, var(--mi) 100%);
+      var(--mi-3) 0%, var(--mi-3) 20%,
+      var(--mi-2) 50%,
+      var(--mi)   84%, var(--mi) 100%);
     transition:width .9s cubic-bezier(.2,.7,.2,1);
   }
   /* USA pulls from the right. Same idea, mirrored: blue at the back, red at the front. */
@@ -208,12 +220,12 @@
   }
   .prow:nth-child(even){ background:rgba(255,255,255,.018); }
   /* top three get the paint */
-  .prow.p1{ background:rgba(255,203,5,.12); }
-  .prow.p1 .nm{ color:var(--maize); font-weight:600; }
+  .prow.p1{ background:var(--accent-t); }
+  .prow.p1 .nm{ color:var(--accent); font-weight:600; }
   .prow.p2, .prow.p3{ background:rgba(255,255,255,.05); }
 
   .rk{ color:var(--dim); font-size:1.7vmin; text-align:right; font-variant-numeric:tabular-nums; }
-  .prow.p1 .rk{ color:var(--maize); }
+  .prow.p1 .rk{ color:var(--accent); }
   .nm{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .rd{ text-align:center; color:var(--dim); font-size:1.65vmin; font-variant-numeric:tabular-nums; }
   .tot{ text-align:right; font-weight:600; font-variant-numeric:tabular-nums; }
@@ -226,18 +238,18 @@
      that everyone can see the score you posted and the fact it didn't count. */
   .prow.gated{ opacity:.4; }
   .prow.gated .nm{ text-decoration:line-through; text-decoration-thickness:1px; }
-  .prow.gated .rk{ color:var(--red); }
+  .prow.gated .rk{ color:var(--us-ink); }
 
   /* ---------- trophy case ---------- */
   .trophy{
     border:2px solid var(--rule); border-radius:.8vmin;
-    background:linear-gradient(180deg, rgba(255,203,5,.05), transparent 55%);
+    background:linear-gradient(180deg, rgba(227,185,79,.06), transparent 55%);
     padding:2.4vmin 2.6vmin; display:flex; flex-direction:column;
   }
   .tName{
     font-family:'Anton', Impact, sans-serif;
     font-size:4.6vmin; text-transform:uppercase; letter-spacing:.03em;
-    color:var(--maize); line-height:1;
+    color:var(--accent); line-height:1;
   }
   .tBlurb{
     font-family:'Barlow Condensed', sans-serif;
@@ -247,7 +259,7 @@
   .chase{
     display:flex; align-items:baseline; gap:1.4vmin;
     margin:2vmin 0; padding:1.4vmin 1.6vmin;
-    background:rgba(255,255,255,.05); border-left:3px solid var(--maize); border-radius:.4vmin;
+    background:rgba(255,255,255,.05); border-left:3px solid var(--accent); border-radius:.4vmin;
   }
   .chaseLabel{
     font-family:'Barlow Condensed', sans-serif;
@@ -256,7 +268,7 @@
   .chaseWho{ font-size:2.4vmin; font-weight:600; flex:1; }
   .chaseScore{
     font-family:'Anton', Impact, sans-serif;
-    font-size:3vmin; color:var(--maize); font-variant-numeric:tabular-nums;
+    font-size:3vmin; color:var(--accent); font-variant-numeric:tabular-nums;
   }
   .chaseNote{
     font-family:'Barlow Condensed', sans-serif;
@@ -274,7 +286,7 @@
     font-size:1.9vmin; letter-spacing:.1em; color:var(--dim); width:5vmin;
   }
   .won .nm{ font-size:2.1vmin; }
-  .won:first-child .nm{ color:var(--maize); font-weight:600; }
+  .won:first-child .nm{ color:var(--accent); font-weight:600; }
 
   /* ---------- ticker ---------- */
   footer{
@@ -288,9 +300,16 @@
   .tickerLabel{
     font-family:'Barlow Condensed', sans-serif;
     font-size:1.6vmin; font-weight:700; letter-spacing:.2em; text-transform:uppercase;
-    color:var(--board); background:var(--maize);
+    color:var(--board); background:var(--accent);
     padding:.4vmin 1vmin; border-radius:2px; white-space:nowrap;
   }
+  .tickerUrl{
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:1.75vmin; font-weight:700; letter-spacing:.1em;
+    color:var(--bone); white-space:nowrap;
+    padding-right:1.6vmin; border-right:1px solid var(--rule);
+  }
+  .tickerUrl b{ color:var(--accent); font-weight:700; }
   .tickerTrack{ flex:1; overflow:hidden; white-space:nowrap; }
   .tickerTrack .run{ display:inline-block; padding-left:100%; animation:slide 42s linear infinite; }
   .tickerTrack .run em{ color:var(--dim); font-style:normal; padding:0 1.6vmin; }
@@ -313,6 +332,11 @@
     <div class="venue" id="venue">Shanty Creek — Northern Michigan</div>
   </div>
   <div class="status">
+    <nav class="nav">
+      <a href="./talk.html">Trash Talk</a>
+      <a href="./cup.html">Cup Scoring</a>
+      <a href="./index.html">Recommend</a>
+    </nav>
     <span class="dot" id="dot"></span>
     <span class="stamp" id="stamp">connecting</span>
   </div>
@@ -351,6 +375,7 @@
 
 <footer>
   <span class="tickerLabel">Trash Talk</span>
+  <span class="tickerUrl" id="tickerUrl"></span>
   <div class="tickerTrack">
     <div class="run" id="ticker"></div>
   </div>
@@ -371,7 +396,7 @@ const CONFIG = {
   // 'Honors' and 'Cup' aren't Squabbit boards — we build those.
   ROTATING: ['Cup', 'Skins', 'Strokeplay', 'Honors'],
 
-  TEAM_COLORS: { 'Michigan': 'maize', 'USA': 'red' },
+
 
   // Who currently holds the cup. On a tie, the holder retains — so the
   // challenger has to actually take it off them. Update after each year.
@@ -601,6 +626,7 @@ function render(){
   document.getElementById('yr').textContent = year;
 
   renderCup();
+  renderTickerUrl();
   renderTicker();
   renderBoard();
 }
@@ -674,6 +700,17 @@ function renderCup(){
 }
 
 const fmtPts = n => (n % 1 === 0 ? String(n) : n.toFixed(1));
+
+/* Print the address so a man on the couch can type it into his phone.
+   Derived from wherever this page is actually served, so it can't go stale. */
+function renderTickerUrl(){
+  const el = document.getElementById('tickerUrl');
+  const u = new URL('./talk.html', location.href);
+  const shown = (u.host + u.pathname)
+    .replace(/^www\./, '')
+    .replace(/\.html$/, '');
+  el.innerHTML = 'Post at <b>' + esc(shown) + '</b>';
+}
 
 function renderTicker(){
   const t = document.getElementById('ticker');
