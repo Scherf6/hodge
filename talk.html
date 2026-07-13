@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trash Talk — The Hodge Memorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+<style>
+  /* Same crest, same brass, same Fraunces as the recommendation form.
+     This is a phone in daylight, so it stays light. The TV board is dark
+     because it lives across a dim room at 10pm. Different rooms, same family. */
+  :root{
+    --green:#43301c;
+    --green-deep:#1f140b;
+    --green-soft:#5e4226;
+    --cream:#f4efe3;
+    --cream-card:#fbf8f0;
+    --brass:#cba43f;
+    --brass-deep:#9e7c22;
+    --ink:#2a2016;
+    --muted:#807763;
+    --line:#ded2ba;
+    --err:#b4452f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:var(--green-deep);}
+  body{
+    font-family:'DM Sans',sans-serif;color:var(--ink);min-height:100vh;
+    background:radial-gradient(120% 80% at 50% -10%, var(--green-soft) 0%, var(--green) 45%, var(--green-deep) 100%);
+    padding:22px 16px 56px;display:flex;flex-direction:column;align-items:center;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .crest{text-align:center;color:var(--cream);margin:6px 0 20px;}
+  .crest .flag{font-size:30px;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4));}
+  .crest .kicker{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--brass);margin-top:10px;font-weight:700;}
+  .crest h1{font-family:'Fraunces',serif;font-weight:900;font-size:34px;line-height:1.05;margin-top:6px;letter-spacing:-.01em;}
+  .crest .sub{font-size:14.5px;color:#cfc8b4;max-width:32ch;margin:12px auto 0;line-height:1.5;}
+
+  .card{
+    width:100%;max-width:480px;background:var(--cream-card);
+    border-radius:18px;padding:24px 22px;
+    box-shadow:0 24px 50px -18px rgba(0,0,0,.6), 0 0 0 1px rgba(198,160,75,.25) inset;
+    border:1px solid var(--line);
+  }
+  .field{margin-bottom:16px;}
+  label{display:block;font-size:12.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--green);margin-bottom:7px;}
+  select,textarea{
+    width:100%;font-family:inherit;font-size:16px;color:var(--ink);background:#fff;
+    border:1.5px solid var(--line);border-radius:11px;padding:13px 14px;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  select:focus,textarea:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 3px rgba(198,160,75,.18);}
+  textarea{resize:vertical;min-height:82px;}
+  textarea::placeholder{color:#b3ad9c;}
+
+  .counter{text-align:right;font-size:12px;color:var(--muted);margin-top:5px;}
+  .counter.hot{color:var(--err);font-weight:700;}
+
+  button{
+    width:100%;font-family:'Fraunces',serif;font-weight:600;font-size:18px;
+    color:var(--green-deep);cursor:pointer;border:none;
+    background:linear-gradient(180deg,#e3c275,var(--brass) 55%,var(--brass-deep));
+    border-radius:12px;padding:15px;box-shadow:0 8px 18px -8px rgba(160,125,46,.8);
+    transition:transform .12s, box-shadow .12s, opacity .2s;
+  }
+  button:active{transform:translateY(1px);}
+  button:disabled{opacity:.6;cursor:default;}
+
+  .note{text-align:center;color:var(--muted);font-size:12px;margin-top:12px;line-height:1.5;}
+  .note b{color:var(--green);}
+  .alert{
+    display:none;margin-top:12px;padding:10px 12px;border-radius:9px;font-size:13.5px;
+    background:#f7e4df;color:var(--err);border:1px solid #e6c4bb;font-weight:500;
+  }
+  .alert.show{display:block;}
+
+  /* ── the feed ── */
+  .feedHead{
+    display:flex;align-items:baseline;justify-content:space-between;
+    width:100%;max-width:480px;margin:30px 0 12px;
+  }
+  .feedHead h2{
+    font-family:'Fraunces',serif;font-weight:900;font-size:20px;color:var(--cream);
+  }
+  .feedHead .count{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);font-weight:700;}
+
+  .feed{width:100%;max-width:480px;display:flex;flex-direction:column;gap:9px;}
+  .post{
+    background:rgba(251,248,240,.07);
+    border:1px solid rgba(198,160,75,.22);
+    border-left:3px solid var(--brass);
+    border-radius:11px;padding:13px 15px;
+    animation:rise .35s ease both;
+  }
+  .post .msg{color:var(--cream);font-size:15.5px;line-height:1.5;}
+  .post .who{
+    margin-top:7px;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--brass);font-weight:700;
+  }
+  .post .who span{color:#8d8776;letter-spacing:.04em;text-transform:none;font-weight:400;}
+  .quiet{
+    text-align:center;color:#9a9384;font-size:14.5px;padding:26px 12px;line-height:1.6;
+    border:1px dashed rgba(198,160,75,.3);border-radius:12px;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+  .backlink{
+    margin-top:26px;font-size:13px;color:var(--brass);text-decoration:none;
+    border-bottom:1px solid rgba(198,160,75,.4);padding-bottom:1px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="crest">
+    <div class="flag">⛳</div>
+    <div class="kicker">The Hodge Memorial</div>
+    <h1>Trash Talk</h1>
+    <p class="sub">Say it here and it goes up on the clubhouse TV. Choose your words.</p>
+  </div>
+
+  <div class="card">
+    <div class="field">
+      <label for="who">Who's talking</label>
+      <select id="who">
+        <option value="">Loading the field…</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="msg">Your jab</label>
+      <textarea id="msg" maxlength="200" placeholder="Keep it under 200 characters. Brevity is the soul of wit."></textarea>
+      <div class="counter" id="counter">200 left</div>
+    </div>
+
+    <button id="send">Put It On The Board</button>
+    <div class="alert" id="alert"></div>
+    <p class="note">Goes live on the TV within a minute. <b>Everyone sees your name.</b></p>
+  </div>
+
+  <div class="feedHead">
+    <h2>On the board</h2>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="feed" id="feed">
+    <div class="quiet">Loading…</div>
+  </div>
+
+  <a class="backlink" href="./board.html">View the full leaderboard →</a>
+
+<script>
+  /* ── The SQUABBIT script's /exec URL. NOT the recommend-a-golfer one. ── */
+  const ENDPOINT = "";
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  let sending = false;
+
+  /* ---- load roster + feed ---- */
+  async function load(){
+    if (!ENDPOINT){
+      fail('No endpoint set. Paste the Squabbit script /exec URL into ENDPOINT.');
+      return;
+    }
+    try{
+      const res  = await fetch(ENDPOINT, { cache:'no-store' });
+      const data = await res.json();
+      fillRoster(data.roster || []);
+      renderFeed(data.talk || []);
+    }catch(err){
+      fail('Could not reach the board. Check the endpoint URL.');
+    }
+  }
+
+  function fail(msg){
+    $('who').innerHTML = '<option value="">—</option>';
+    $('feed').innerHTML = '<div class="quiet">' + esc(msg) + '</div>';
+  }
+
+  /* The roster comes off the leaderboard itself, so there's no list to maintain.
+     Remembers you after the first post — nobody wants to find their name twice. */
+  function fillRoster(names){
+    const saved = localStorage.getItem('hodge_name') || '';
+    $('who').innerHTML =
+      '<option value="">Find your name…</option>' +
+      names.map(n =>
+        '<option value="' + esc(n) + '"' + (n === saved ? ' selected' : '') + '>' + esc(n) + '</option>'
+      ).join('');
+  }
+
+  function renderFeed(talk){
+    $('count').textContent = talk.length ? talk.length + ' posted' : '';
+
+    if (!talk.length){
+      $('feed').innerHTML =
+        '<div class="quiet">Nothing yet.<br>Somebody has to go first.</div>';
+      return;
+    }
+
+    $('feed').innerHTML = talk.map(p =>
+      '<div class="post">' +
+        '<div class="msg">' + esc(p.message) + '</div>' +
+        '<div class="who">' + esc(p.name) +
+          (p.at ? ' <span>· ' + ago(p.at) + '</span>' : '') +
+        '</div>' +
+      '</div>'
+    ).join('');
+  }
+
+  function ago(iso){
+    const mins = Math.round((Date.now() - new Date(iso)) / 60000);
+    if (isNaN(mins))  return '';
+    if (mins < 1)     return 'just now';
+    if (mins < 60)    return mins + 'm ago';
+    if (mins < 1440)  return Math.round(mins/60) + 'h ago';
+    return Math.round(mins/1440) + 'd ago';
+  }
+
+  /* ---- post ---- */
+  $('send').addEventListener('click', async () => {
+    if (sending) return;
+
+    const name = $('who').value;
+    const message = $('msg').value.trim();
+
+    if (!name)    return alert_('Pick your name first.');
+    if (!message) return alert_('You have to actually say something.');
+
+    sending = true;
+    $('send').disabled = true;
+    $('send').textContent = 'Sending…';
+    $('alert').classList.remove('show');
+
+    try{
+      /* text/plain on purpose: a JSON content-type makes the browser fire a
+         CORS preflight, and Apps Script can't answer one. This sails through. */
+      const res = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ name, message })
+      });
+      const data = await res.json();
+
+      if (!data.ok) throw new Error(data.error || 'Rejected.');
+
+      localStorage.setItem('hodge_name', name);
+      $('msg').value = '';
+      countdown();
+      renderFeed(data.talk || []);
+
+    }catch(err){
+      alert_('That didn\'t send. Try again.');
+    }finally{
+      sending = false;
+      $('send').disabled = false;
+      $('send').textContent = 'Put It On The Board';
+    }
+  });
+
+  function alert_(msg){
+    $('alert').textContent = msg;
+    $('alert').classList.add('show');
+  }
+
+  /* ---- character counter ---- */
+  function countdown(){
+    const left = 200 - $('msg').value.length;
+    $('counter').textContent = left + ' left';
+    $('counter').classList.toggle('hot', left < 25);
+  }
+  $('msg').addEventListener('input', countdown);
+
+  load();
+  setInterval(load, 45000);
+</script>
+</body>
+</html>
