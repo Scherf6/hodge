@@ -20,9 +20,26 @@
     --rule:     #1E3A30;
     --bone:     #EDE7D8;   /* old scoreboard paint */
     --dim:      #6B8078;
-    --maize:    #FFCB05;   /* Michigan */
-    --red:      #D5233B;   /* USA */
     --live:     #4ADE80;
+
+    /* MICHIGAN — the state's teams, in one rope.
+       Maize leads because it's the one you can read from the kitchen. */
+    --mi:       #FFCB05;   /* Maize — Wolverines */
+    --mi-2:     #0076B6;   /* Honolulu Blue — Lions */
+    --mi-3:     #18453B;   /* Spartan Green — Michigan State */
+
+    /* USA — Old Glory, actual flag values. */
+    --us:       #B22234;   /* Old Glory Red */
+    --us-2:     #FFFFFF;   /* White */
+    --us-3:     #3C3B6E;   /* Old Glory Blue */
+
+    /* aliases so the rest of the sheet reads plainly */
+    --maize:    var(--mi);
+    --red:      var(--us);
+
+    /* Old Glory Red is correct but muddy as type on near-black.
+       True flag color lives in the rope; this is the one you read. */
+    --us-ink:   #DB3149;
   }
 
   *{ box-sizing:border-box; margin:0; padding:0; }
@@ -85,13 +102,24 @@
   .teamName{
     font-family:'Anton', Impact, sans-serif;
     font-size:4.2vmin; letter-spacing:.03em; text-transform:uppercase; line-height:1;
+    padding-bottom:.9vmin; position:relative;
+  }
+  /* the team's full palette, as a rule under its name */
+  .teamName::after{
+    content:''; position:absolute; left:0; right:0; bottom:0; height:.5vmin;
+  }
+  .mi .teamName::after{
+    background:linear-gradient(90deg, var(--mi) 0 34%, var(--mi-2) 34% 67%, var(--mi-3) 67% 100%);
+  }
+  .us .teamName::after{
+    background:linear-gradient(90deg, var(--us) 0 34%, var(--us-2) 34% 67%, var(--us-3) 67% 100%);
   }
   .teamScore{
     font-family:'Anton', Impact, sans-serif;
     font-size:8.4vmin; line-height:.85; font-variant-numeric:tabular-nums;
   }
-  .mi .teamName, .mi .teamScore{ color:var(--maize); }
-  .us .teamName, .us .teamScore{ color:var(--red); }
+  .mi .teamName, .mi .teamScore{ color:var(--mi); }
+  .us .teamName, .us .teamScore{ color:var(--us-ink); }
 
   .cupState{
     text-align:center;
@@ -103,20 +131,40 @@
 
   .rope{
     position:relative; margin-top:1.8vmin;
-    height:1.8vmin; background:var(--board-2);
-    border:2px solid var(--rule); border-radius:.9vmin; overflow:hidden;
+    height:2.2vmin; background:var(--board-2);
+    border:2px solid var(--rule); border-radius:1.1vmin; overflow:hidden;
   }
+  /* Michigan pulls from the left. Green at the back, maize at the sharp end —
+     the leading edge is the color you're meant to read at a glance. */
   .rope .fill{
     position:absolute; inset:0 auto 0 0;
-    background:var(--maize);
+    background:linear-gradient(90deg,
+      var(--mi-3) 0%, var(--mi-3) 18%,
+      var(--mi-2) 46%,
+      var(--mi)   82%, var(--mi) 100%);
     transition:width .9s cubic-bezier(.2,.7,.2,1);
   }
-  .rope .fill.us{ inset:0 0 0 auto; background:var(--red); }
-  /* the line you have to cross to win it */
-  .rope .center{
-    position:absolute; left:50%; top:-.6vmin; bottom:-.6vmin;
-    width:2px; background:var(--bone); transform:translateX(-1px);
+  /* USA pulls from the right. Same idea, mirrored: blue at the back, red at the front. */
+  .rope .fill.us{
+    inset:0 0 0 auto;
+    background:linear-gradient(270deg,
+      var(--us-3) 0%, var(--us-3) 18%,
+      var(--us-2) 46%,
+      var(--us)   82%, var(--us) 100%);
   }
+  /* the line you have to cross to take it */
+  .rope .center{
+    position:absolute; left:50%; top:-.7vmin; bottom:-.7vmin;
+    width:2px; background:var(--bone); transform:translateX(-1px);
+    box-shadow:0 0 0 1px rgba(10,20,17,.85);
+  }
+
+  .ropeKey{
+    display:flex; justify-content:space-between; margin-top:.9vmin;
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:1.6vmin; letter-spacing:.14em; text-transform:uppercase; color:var(--dim);
+  }
+  .ropeKey b{ color:var(--bone); font-weight:700; }
 
   /* ---------- rotating board ---------- */
   main{ flex:1 1 auto; padding:0 2.4vmin 1.2vmin; min-height:0; display:flex; flex-direction:column; }
@@ -169,6 +217,64 @@
   .nm{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .rd{ text-align:center; color:var(--dim); font-size:1.65vmin; font-variant-numeric:tabular-nums; }
   .tot{ text-align:right; font-weight:600; font-variant-numeric:tabular-nums; }
+
+  /* ---------- the Cup ---------- */
+  .cuprow{
+    grid-template-columns: 3.6vmin 1fr 4vmin 4vmin 4vmin 4vmin 5.4vmin !important;
+  }
+  /* Beat nobody, get nothing. Struck through, still visible — the point is
+     that everyone can see the score you posted and the fact it didn't count. */
+  .prow.gated{ opacity:.4; }
+  .prow.gated .nm{ text-decoration:line-through; text-decoration-thickness:1px; }
+  .prow.gated .rk{ color:var(--red); }
+
+  /* ---------- trophy case ---------- */
+  .trophy{
+    border:2px solid var(--rule); border-radius:.8vmin;
+    background:linear-gradient(180deg, rgba(255,203,5,.05), transparent 55%);
+    padding:2.4vmin 2.6vmin; display:flex; flex-direction:column;
+  }
+  .tName{
+    font-family:'Anton', Impact, sans-serif;
+    font-size:4.6vmin; text-transform:uppercase; letter-spacing:.03em;
+    color:var(--maize); line-height:1;
+  }
+  .tBlurb{
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:1.7vmin; font-weight:700; letter-spacing:.24em; text-transform:uppercase;
+    color:var(--dim); margin-top:.8vmin;
+  }
+  .chase{
+    display:flex; align-items:baseline; gap:1.4vmin;
+    margin:2vmin 0; padding:1.4vmin 1.6vmin;
+    background:rgba(255,255,255,.05); border-left:3px solid var(--maize); border-radius:.4vmin;
+  }
+  .chaseLabel{
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:1.5vmin; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--dim);
+  }
+  .chaseWho{ font-size:2.4vmin; font-weight:600; flex:1; }
+  .chaseScore{
+    font-family:'Anton', Impact, sans-serif;
+    font-size:3vmin; color:var(--maize); font-variant-numeric:tabular-nums;
+  }
+  .chaseNote{
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:1.5vmin; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--dim); margin:-1.2vmin 0 1.6vmin .4vmin;
+  }
+  .roll{ margin-top:auto; border-top:1px solid var(--rule); padding-top:1.2vmin; }
+  .won{
+    display:flex; gap:1.6vmin; align-items:baseline;
+    padding:.75vmin 0; border-bottom:1px solid rgba(30,58,48,.4);
+  }
+  .won:last-child{ border-bottom:none; }
+  .won .yr{
+    font-family:'Barlow Condensed', sans-serif; font-weight:700;
+    font-size:1.9vmin; letter-spacing:.1em; color:var(--dim); width:5vmin;
+  }
+  .won .nm{ font-size:2.1vmin; }
+  .won:first-child .nm{ color:var(--maize); font-weight:600; }
 
   /* ---------- ticker ---------- */
   footer{
@@ -232,6 +338,7 @@
     <div class="fill us" id="fillB"></div>
     <div class="center"></div>
   </div>
+  <div class="ropeKey" id="ropeKey"></div>
 </section>
 
 <main>
@@ -260,11 +367,50 @@ const CONFIG = {
   ROTATE_MS:  14000,   // how long each board holds on screen
   REFRESH_MS: 60000,   // how often we re-pull from the Sheet
 
-  // The Ryder Cup board is the hero; these are the boards that rotate below it.
-  ROTATING: ['Skins', 'Strokeplay'],
+  // The Ryder Cup board is the hero; these rotate below it.
+  // 'Honors' and 'Cup' aren't Squabbit boards — we build those.
+  ROTATING: ['Cup', 'Skins', 'Strokeplay', 'Honors'],
 
   TEAM_COLORS: { 'Michigan': 'maize', 'USA': 'red' },
+
+  // Who currently holds the cup. On a tie, the holder retains — so the
+  // challenger has to actually take it off them. Update after each year.
+  CUP_HOLDER: 'Michigan',
+
+  // Points on the table. 2025: three team rounds of 7, plus 14 singles.
+  // Holder retains at half (17.5). Challenger must clear it (18).
+  TOTAL_POINTS: 35,
+
+  // Rounds to drop from World's #1 (1-indexed), e.g. [3].
+  // null = detect it from the scores. 2025's R3 was the 2-man scramble.
+  SCRAMBLE_ROUNDS: null,
 };
+
+/* =================================================================
+   THE TROPHY CASE
+   Add the new name each September. Newest first.
+   ================================================================= */
+const AWARDS = [
+  {
+    name: "World's #1",
+    blurb: 'Low gross · scramble excluded',
+    winners: [
+      { year: 2025, who: 'Will Crane' },
+      { year: 2024, who: 'Will Crane' },
+      { year: 2023, who: 'Kellen VanDreumel' },
+    ],
+    race: p => lowGross(p),
+  },
+  {
+    name: 'The Max',
+    blurb: 'Low net',
+    winners: [
+      { year: 2025, who: 'Michael Cadieux' },
+      { year: 2024, who: 'Ande Scherf' },
+    ],
+    race: p => leaderOf(p, 'Strokeplay'),
+  },
+];
 
 /* Trash talk now comes down inside the payload, posted from talk.html. */
 
@@ -358,6 +504,95 @@ function ago(iso){
 
 const boardBy = name => (payload.boards || []).find(b => b.name === name);
 
+/* ---- award race math ----
+   Player rows on the Ryder Cup board (the ones with '-' for rank) carry gross
+   to par per round. The two team rows carry the actual cup score. */
+function grossRows(p){
+  const rc = (p.boards || []).find(b => b.name === 'Ryder Cup');
+  return rc ? rc.rows.filter(r => r[0] === '-') : [];
+}
+
+/* '+12' -> 12, '-4' -> -4, 'E' -> 0, '' -> null */
+function toNum(s){
+  const t = String(s || '').trim();
+  if (!t || t === '-') return null;
+  if (t.toUpperCase() === 'E') return 0;
+  const n = parseFloat(t.replace('+',''));
+  return isNaN(n) ? null : n;
+}
+
+/* ---- scramble detection ----
+   In a 2-man scramble both partners post the same gross. So a scramble round
+   is the one where every score in the field appears an EVEN number of times —
+   14 perfect pairs across 28 men. Stroke play rounds never do this; somebody
+   always has a number nobody else has.
+
+   2025's R3 pairs perfectly. R1, R2 and R4 don't. So the format tells us which
+   round it was, and nobody has to remember in 2031.
+
+   Set CONFIG.SCRAMBLE_ROUNDS = [3] to override (1-indexed). null = auto. */
+function scrambleRounds(rows){
+  if (CONFIG.SCRAMBLE_ROUNDS) return CONFIG.SCRAMBLE_ROUNDS.map(n => n - 1);
+  if (rows.length < 4 || rows.length % 2 !== 0) return [];   // can't pair an odd field
+
+  const found = [];
+  for (let col = 0; col < 4; col++){
+    const vals = rows.map(r => toNum(r[col + 2]));
+    if (vals.some(v => v === null)) continue;                // round not played yet
+
+    const tally = {};
+    vals.forEach(v => tally[v] = (tally[v] || 0) + 1);
+
+    const allPaired = Object.keys(tally).every(k => tally[k] % 2 === 0);
+    const enoughDupes = Object.keys(tally).length <= vals.length / 2;
+
+    if (allPaired && enoughDupes) found.push(col);
+  }
+  return found;
+}
+
+/* Sum a player's rounds, skipping any scramble. */
+function sumScores(r, skip){
+  const vals = [];
+  for (let col = 0; col < 4; col++){
+    if (skip && skip.indexOf(col) !== -1) continue;
+    const v = toNum(r[col + 2]);
+    if (v !== null) vals.push(v);
+  }
+  return vals.length ? vals.reduce((a,b) => a+b, 0) : null;
+}
+
+function lowGross(p){
+  const rows = grossRows(p);
+  if (!rows.length) return null;
+
+  const skip = scrambleRounds(rows);
+
+  let best = null;
+  rows.forEach(r => {
+    const v = sumScores(r, skip);
+    if (v === null) return;
+    if (!best || v < best.value) best = { who: r[1], value: v };
+  });
+  if (!best) return null;
+
+  return {
+    who: best.who,
+    score: fmtScore(best.value),
+    note: skip.length ? 'R' + skip.map(c => c + 1).join('/R') + ' scramble — not counted' : ''
+  };
+}
+
+/* Whoever's sitting on top of a board right now. */
+function leaderOf(p, boardName){
+  const b = (p.boards || []).find(x => x.name === boardName);
+  if (!b || !b.rows.length) return null;
+  const r = b.rows[0];
+  return { who: r[1], score: r[r.length - 1], note: '' };
+}
+
+const fmtScore = n => n === 0 ? 'E' : (n > 0 ? '+' + n : String(n));
+
 /* =================================================================
    RENDER
    ================================================================= */
@@ -370,7 +605,12 @@ function render(){
   renderBoard();
 }
 
-/* The hero. Team rows are the ones with a real rank; players carry '-'. */
+/* The hero. Team rows are the ones with a real rank; players carry '-'.
+
+   The rope isn't a share-of-points bar — it's a race to a line. The holder
+   retains on a tie, so the two sides are chasing different numbers: half the
+   points retains it, half-plus-a-half takes it. That gap is the whole drama
+   and it belongs on the wall. */
 function renderCup(){
   const rc = boardBy('Ryder Cup');
   const cup = document.getElementById('cup');
@@ -384,29 +624,52 @@ function renderCup(){
   const nameA = a[1], nameB = b[1];
   const totA = parseFloat(a[a.length-1]) || 0;
   const totB = parseFloat(b[b.length-1]) || 0;
-  const played = totA + totB;
 
   document.getElementById('nameA').textContent  = nameA;
   document.getElementById('nameB').textContent  = nameB;
   document.getElementById('scoreA').textContent = fmtPts(totA);
   document.getElementById('scoreB').textContent = fmtPts(totB);
 
-  // The rope: each side's share of what's been decided so far.
-  const pctA = played ? (totA / played) * 100 : 50;
-  document.getElementById('fillA').style.width = pctA + '%';
-  document.getElementById('fillB').style.width = (100 - pctA) + '%';
+  const TOTAL  = CONFIG.TOTAL_POINTS;
+  const RETAIN = TOTAL / 2;            // holder needs this
+  const WIN    = RETAIN + 0.5;         // challenger needs this
+  const holder = CONFIG.CUP_HOLDER;
 
-  const lead = Math.abs(totA - totB);
+  // The rope: progress toward the line, not share of what's been won.
+  document.getElementById('fillA').style.width = Math.min(100, (totA / TOTAL) * 100) + '%';
+  document.getElementById('fillB').style.width = Math.min(100, (totB / TOTAL) * 100) + '%';
+
   const verdict = document.getElementById('cupVerdict');
   const sub     = document.getElementById('cupSub');
 
-  if (totA === totB){
-    verdict.textContent = 'All Square';
-    sub.textContent = played ? fmtPts(played) + ' points played' : 'no points on the board';
+  // The line means different things to the two sides. Say so, out loud.
+  document.getElementById('ropeKey').innerHTML =
+    '<span>' + esc(holder) + ' holds it — <b>' + fmtPts(RETAIN) + '</b> retains</span>' +
+    '<span>Challenger needs <b>' + fmtPts(WIN) + '</b> to take it</span>';
+
+  const need = (team, tot) => (team === holder ? RETAIN : WIN) - tot;
+  const needA = need(nameA, totA), needB = need(nameB, totB);
+
+  // Decided?
+  if (needA <= 0){
+    verdict.textContent = nameA + (nameA === holder && totA < WIN ? ' retains' : ' wins');
+    sub.textContent = fmtPts(totA) + ' – ' + fmtPts(totB);
+  } else if (needB <= 0){
+    verdict.textContent = nameB + (nameB === holder && totB < WIN ? ' retains' : ' wins');
+    sub.textContent = fmtPts(totB) + ' – ' + fmtPts(totA);
   } else {
-    const front = totA > totB ? nameA : nameB;
-    verdict.textContent = front + ' by ' + fmtPts(lead);
-    sub.textContent = fmtPts(played) + ' points played';
+    // Still live. Say what each side has left to do — that's the actual story.
+    const played = totA + totB;
+    if (totA === totB){
+      verdict.textContent = 'All Square';
+    } else {
+      const front = totA > totB ? nameA : nameB;
+      verdict.textContent = front + ' by ' + fmtPts(Math.abs(totA - totB));
+    }
+    sub.textContent =
+      nameA + ' needs ' + fmtPts(needA) + '  ·  ' +
+      nameB + ' needs ' + fmtPts(needB) + '  ·  ' +
+      fmtPts(TOTAL - played) + ' left';
   }
 }
 
@@ -429,9 +692,23 @@ function renderTicker(){
 }
 
 function renderBoard(){
-  const names = CONFIG.ROTATING.filter(boardBy);
+  const has = n =>
+    n === 'Honors' ? true :
+    n === 'Cup'    ? !!(payload.cup && payload.cup.cup && payload.cup.cup.length) :
+    !!boardBy(n);
+
+  const names = CONFIG.ROTATING.filter(has);
   const grid  = document.getElementById('grid');
   const pips  = document.getElementById('pips');
+
+  if (names.length){
+    const current = names[boardIdx % names.length];
+    pips.innerHTML = names.map((_, i) =>
+      '<div class="pip' + (i === boardIdx % names.length ? ' on' : '') + '"></div>').join('');
+
+    if (current === 'Honors'){ renderHonors(grid); return; }
+    if (current === 'Cup'){ renderCup_(grid); return; }
+  }
 
   if (!names.length){
     document.getElementById('boardName').textContent = payload.live ? 'No boards' : 'Not started';
@@ -457,6 +734,75 @@ function renderBoard(){
   ).join('');
 
   // restart the entrance animation
+  grid.style.animation = 'none'; void grid.offsetWidth; grid.style.animation = '';
+}
+
+/* The trophy case. Past winners, and whoever's currently chasing them. */
+function renderHonors(grid){
+  document.getElementById('boardName').textContent = 'The Hardware';
+
+  grid.innerHTML = AWARDS.map(a => {
+    const race = payload.live ? a.race(payload) : null;
+
+    const chase = race
+      ? '<div class="chase">' +
+          '<div class="chaseLabel">Currently</div>' +
+          '<div class="chaseWho">' + esc(race.who) + '</div>' +
+          '<div class="chaseScore">' + esc(race.score) + '</div>' +
+        '</div>' +
+        (race.note ? '<div class="chaseNote">' + esc(race.note) + '</div>' : '')
+      : '<div class="chase"><div class="chaseLabel">Not started</div></div>';
+
+    const roll = a.winners.map(w =>
+      '<div class="won">' +
+        '<span class="yr">' + w.year + '</span>' +
+        '<span class="nm">' + esc(w.who) + '</span>' +
+      '</div>').join('');
+
+    return '<div class="trophy">' +
+      '<div class="tName">' + esc(a.name) + '</div>' +
+      '<div class="tBlurb">' + esc(a.blurb) + '</div>' +
+      chase +
+      '<div class="roll">' + roll + '</div>' +
+    '</div>';
+  }).join('');
+
+  grid.style.animation = 'none'; void grid.offsetWidth; grid.style.animation = '';
+}
+
+/* The Hodge Cup. Match points do the heavy lifting; the gate does the moral work. */
+function renderCup_(grid){
+  document.getElementById('boardName').textContent = 'The Hodge Cup';
+
+  const all = payload.cup.cup;
+  const half = Math.ceil(Math.min(all.length, 20) / 2);
+  const cols = [all.slice(0, half), all.slice(half, half * 2)];
+
+  const head =
+    '<div class="hrow cuprow">' +
+      '<div style="text-align:right">#</div><div>Player</div>' +
+      '<div style="text-align:center">Mtch</div>' +
+      '<div style="text-align:center">Grs</div>' +
+      '<div style="text-align:center">Net</div>' +
+      '<div style="text-align:center">Skn</div>' +
+      '<div style="text-align:right">Cup</div>' +
+    '</div>';
+
+  grid.innerHTML = cols.map(rows =>
+    '<div class="col">' + head + rows.map(c => {
+      const cls = !c.eligible ? ' gated' : (c.place === 1 ? ' p1' : c.place <= 3 ? ' p2' : '');
+      return '<div class="prow cuprow' + cls + '">' +
+        '<div class="rk">' + (c.eligible ? c.place : '✗') + '</div>' +
+        '<div class="nm">' + esc(c.name) + '</div>' +
+        '<div class="rd">' + c.mp + '</div>' +
+        '<div class="rd">' + (c.grossRank ? '#' + c.grossRank : '–') + '</div>' +
+        '<div class="rd">' + (c.netRank ? '#' + c.netRank : '–') + '</div>' +
+        '<div class="rd">' + (c.skins || '–') + '</div>' +
+        '<div class="tot">' + c.points.toFixed(1) + '</div>' +
+      '</div>';
+    }).join('') + '</div>'
+  ).join('');
+
   grid.style.animation = 'none'; void grid.offsetWidth; grid.style.animation = '';
 }
 
