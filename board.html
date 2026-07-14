@@ -328,6 +328,81 @@
 
   .empty{ color:var(--dim); text-align:center; padding:6vmin; font-size:2.2vmin; }
 
+
+  /* ---------- phones ----------
+     The board is sized in vmin because a TV is a fixed rectangle you read from
+     across a room. A phone is neither: vmin becomes the ~390px width, so 2vmin
+     lands at seven pixels and the whole thing turns into a postage stamp.
+     Below 820px we throw that out — real pixel sizes, one column, and it scrolls. */
+  @media (max-width: 820px){
+    body{ height:auto; min-height:100vh; overflow-y:auto; overflow-x:hidden; }
+
+    header{ flex-direction:column; align-items:flex-start; gap:10px; padding:14px 16px; }
+    header::before{ right:-4%; width:70px; }
+    .wordmark{ font-size:23px; }
+    .venue{ font-size:10.5px; letter-spacing:.16em; }
+    .status{ width:100%; flex-wrap:wrap; gap:10px; }
+    .nav{ order:3; width:100%; gap:6px; margin:0; }
+    .nav a{ flex:1; text-align:center; font-size:10.5px; padding:9px 4px; }
+    .dot{ width:8px; height:8px; }
+    .stamp{ font-size:10.5px; }
+
+    .cup{ padding:16px 16px 12px; }
+    .cupRow{ align-items:center; }
+    .teamName{ font-size:15px; padding-bottom:6px; }
+    .teamName::after{ height:3px; }
+    .teamScore{ font-size:36px; }
+    .team{ gap:8px; flex-direction:column; align-items:center; }
+    .team.right{ flex-direction:column; }
+    .cupState{ font-size:12px; letter-spacing:.12em; padding:0 6px; }
+    .cupState small{ font-size:9.5px; letter-spacing:.06em; margin-top:4px; }
+    .rope{ height:13px; border-radius:7px; margin-top:14px; }
+    .rope .center{ top:-4px; bottom:-4px; }
+    .ropeKey{ flex-direction:column; align-items:center; gap:3px; margin-top:8px;
+              font-size:9.5px; text-align:center; }
+
+    main{ padding:0 12px 14px; }
+    .boardHead{ padding:12px 0 8px; }
+    .boardName{ font-size:17px; }
+    .pips{ gap:6px; }
+    .pip{ width:30px; height:5px; }
+
+    /* one column, and the second half's header would just be noise */
+    .grid{ grid-template-columns:1fr; gap:0; }
+    .col + .col .hrow{ display:none; }
+
+    .hrow, .prow{
+      grid-template-columns: 26px 1fr 26px 26px 26px 26px 38px;
+      gap:4px; padding:7px 4px;
+    }
+    .hrow{ font-size:9.5px; letter-spacing:.1em; }
+    .prow{ font-size:13.5px; }
+    .rk{ font-size:11px; }
+    .rd{ font-size:11px; }
+    .cuprow{ grid-template-columns: 24px 1fr 28px 28px 28px 28px 40px !important; }
+
+    .grid .trophy{ padding:16px; margin-bottom:12px; }
+    .tName{ font-size:24px; }
+    .tBlurb{ font-size:10px; }
+    .chase{ margin:12px 0; padding:10px 12px; }
+    .chaseLabel{ font-size:9.5px; }
+    .chaseWho{ font-size:15px; }
+    .chaseScore{ font-size:18px; }
+    .chaseNote{ font-size:9.5px; margin:-6px 0 10px 2px; }
+    .won .yr{ font-size:11px; width:34px; }
+    .won .nm{ font-size:13.5px; }
+
+    footer{ flex-wrap:wrap; gap:8px 12px; padding:10px 14px; }
+    .tickerLabel{ font-size:9.5px; padding:4px 8px; }
+    .tickerUrl{ font-size:11px; border-right:none; padding-right:0; }
+    .tickerTrack{ flex-basis:100%; }
+    .tickerTrack span{ font-size:12.5px; }
+  }
+
+  /* the pips are a control, not just an indicator */
+  .pip{ cursor:pointer; }
+  @media (max-width: 820px){ .pip{ width:34px; height:7px; } }
+
   @media (prefers-reduced-motion: reduce){
     *, *::before, *::after{ animation:none !important; transition:none !important; }
     .tickerTrack .run{ padding-left:0; }
@@ -828,8 +903,16 @@ function renderBoard(){
 
   if (names.length){
     const current = names[boardIdx % names.length];
-    pips.innerHTML = names.map((_, i) =>
-      '<div class="pip' + (i === boardIdx % names.length ? ' on' : '') + '"></div>').join('');
+    pips.innerHTML = names.map((n, i) =>
+      '<div class="pip' + (i === boardIdx % names.length ? ' on' : '') +
+      '" data-i="' + i + '" title="' + esc(n) + '"></div>').join('');
+
+    // On a phone you want to look at a board, not wait for it to come round again.
+    pips.querySelectorAll('.pip').forEach(p => p.onclick = () => {
+      boardIdx = +p.dataset.i;
+      restartRotation();
+      renderBoard();
+    });
 
     if (current === 'Honors'){ renderHonors(grid); return; }
     if (current === 'Cup'){ renderCup_(grid); return; }
@@ -961,9 +1044,16 @@ const esc = s => String(s == null ? '' : s)
 /* =================================================================
    LOOPS
    ================================================================= */
+/* Tapping a pip shouldn't leave you two seconds from being yanked away. */
+let rotTimer = null;
+function restartRotation(){
+  clearInterval(rotTimer);
+  rotTimer = setInterval(() => { if (payload){ boardIdx++; renderBoard(); } }, CONFIG.ROTATE_MS);
+}
+
 load();
 setInterval(load, CONFIG.REFRESH_MS);
-setInterval(() => { if (payload){ boardIdx++; renderBoard(); } }, CONFIG.ROTATE_MS);
+restartRotation();
 </script>
 </body>
 </html>
