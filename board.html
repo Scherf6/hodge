@@ -15,32 +15,31 @@
      --------------------------------------------------------------- */
 
   :root{
-    --board:    #0A1411;   /* deep pine, almost black — a dim room at 10pm */
-    --board-2:  #10201A;
-    --rule:     #1E3A30;
-    --bone:     #EDE7D8;   /* old scoreboard paint */
-    --dim:      #6B8078;
+    /* Deep water at dusk. The Hodge board is a pine forest; this one is
+       Lake Michigan at 9pm, which is where these guys actually are. */
+    --board:    #061A2C;
+    --board-2:  #0B2842;
+    --rule:     #1B4368;
+    --bone:     #E8EFF4;   /* cool white — hull paint, not scoreboard paint */
+    --dim:      #6D8CA3;
     --live:     #4ADE80;
 
-    /* The board's own color. Hodge brass, lifted for a dark background —
-       the same brass as the crest on every other page. Team colors belong
-       to teams; the furniture belongs to the tournament. */
-    --accent:   #E3B94F;
-    --accent-t: rgba(227,185,79,.13);   /* the same, as a wash */
+    /* Chrome: ship's brass. Gold is Coast Guard (insignia, the bell) and it's
+       the one warm thing that survives a navy background at distance. */
+    --accent:   #F2B33C;
+    --accent-t: rgba(242,179,60,.14);
 
-    /* MICHIGAN — Detroit pro, in one rope.
-       Honolulu Blue leads. Tigers Orange is gorgeous but reads as red from
-       across a room, and USA is already red. It rides in the middle instead. */
-    --mi:       #0076B6;   /* Honolulu Blue — Lions */
-    --mi-2:     #FA4616;   /* Orange — Tigers */
-    --mi-3:     #1D42BA;   /* Royal — Pistons */
-    --mi-ink:   #37A7E6;   /* Honolulu, lifted, for type at distance */
+    /* COASTIES — the racing stripe. Reigning champs get the stripe. */
+    --mi:       #E03C31;   /* CG racing stripe red */
+    --mi-2:     #FFFFFF;
+    --mi-3:     #003A63;
+    --mi-ink:   #FF6A5B;   /* stripe red, lifted, for type on navy */
 
-    /* USA — Old Glory, actual flag values. */
-    --us:       #B22234;   /* Old Glory Red */
-    --us-2:     #FFFFFF;   /* White */
-    --us-3:     #3C3B6E;   /* Old Glory Blue */
-    --us-ink:   #DB3149;   /* flag red is muddy as type on near-black */
+    /* THE GUARD — working blue and hull grey. */
+    --us:       #0077C8;   /* Coast Guard blue */
+    --us-2:     #C8CDD2;   /* hull grey */
+    --us-3:     #002B49;
+    --us-ink:   #58B4E8;
   }
 
   *{ box-sizing:border-box; margin:0; padding:0; }
@@ -54,7 +53,7 @@
     display:flex;
     flex-direction:column;
     /* faint vignette so the center reads brighter from a distance */
-    background-image:radial-gradient(ellipse at 50% 35%, #14261F 0%, var(--board) 70%);
+    background-image:radial-gradient(ellipse at 50% 35%, #0E3050 0%, var(--board) 70%);
   }
 
   /* ---------- header ---------- */
@@ -63,7 +62,18 @@
     padding:1.6vmin 2.4vmin;
     border-bottom:2px solid var(--rule);
     flex:0 0 auto;
+    position:relative; overflow:hidden;
   }
+  /* The racing stripe. Canted like the real one — the whole reason anybody
+     recognises a Coast Guard hull from a mile out. */
+  header::before{
+    content:''; position:absolute; top:0; bottom:0; right:14%;
+    width:9vmin; transform:skewX(-26deg);
+    background:linear-gradient(90deg,
+      var(--mi) 0 62%, var(--board) 62% 70%, var(--us-3) 70% 100%);
+    opacity:.9;
+  }
+  header > *{ position:relative; z-index:1; }
   .wordmark{
     font-family:'Anton', Impact, sans-serif;
     font-size:3.1vmin; letter-spacing:.06em; text-transform:uppercase;
@@ -328,14 +338,13 @@
 
 <header>
   <div>
-    <div class="wordmark">Hodge Memorial <span id="yr"></span></div>
-    <div class="venue" id="venue">Shanty Creek — Northern Michigan</div>
+    <div class="wordmark" id="wordmark"></div>
+    <div class="venue" id="venue"></div>
   </div>
   <div class="status">
     <nav class="nav">
       <a href="./talk.html">Trash Talk</a>
       <a href="./cup.html">Cup Scoring</a>
-      <a href="./index.html">Recommend</a>
     </nav>
     <span class="dot" id="dot"></span>
     <span class="stamp" id="stamp">connecting</span>
@@ -387,24 +396,16 @@
    ================================================================= */
 const CONFIG = {
   // Paste your Apps Script /exec URL here. Leave empty to run on demo data.
-  API_URL: '',
+  API_URL: 'https://script.google.com/macros/s/AKfycbw41dXrwBb3d9GAHY1PDNXRITVbXMMciHWosFOp0oTBMm55mE5J5zZ7BpxDit6scbs/exec',
 
   ROTATE_MS:  14000,   // how long each board holds on screen
   REFRESH_MS: 60000,   // how often we re-pull from the Sheet
 
   // The Ryder Cup board is the hero; these rotate below it.
   // 'Honors' and 'Cup' aren't Squabbit boards — we build those.
-  ROTATING: ['Cup', 'Skins', 'Strokeplay', 'Honors'],
+  ROTATING: ['Cup', 'Ryder Cup'],   // no Skins or Strokeplay at this event
 
 
-
-  // Who currently holds the cup. On a tie, the holder retains — so the
-  // challenger has to actually take it off them. Update after each year.
-  CUP_HOLDER: 'Michigan',
-
-  // Points on the table. 2025: three team rounds of 7, plus 14 singles.
-  // Holder retains at half (17.5). Challenger must clear it (18).
-  TOTAL_POINTS: 35,
 
   // Rounds to drop from World's #1 (1-indexed), e.g. [3].
   // null = detect it from the scores. 2025's R3 was the 2-man scramble.
@@ -412,30 +413,52 @@ const CONFIG = {
 };
 
 /* =================================================================
-   THE TROPHY CASE
-   Add the new name each September. Newest first.
+   EVENT PROFILE
+   Everything that changes between tournaments lives here. Swap this
+   block and the same page runs a different event.
    ================================================================= */
-const AWARDS = [
-  {
-    name: "World's #1",
-    blurb: 'Low gross · scramble excluded',
-    winners: [
-      { year: 2025, who: 'Will Crane' },
-      { year: 2024, who: 'Will Crane' },
-      { year: 2023, who: 'Kellen VanDreumel' },
-    ],
-    race: p => lowGross(p),
+const EVENT = {
+  title: 'Coast Guard Cup',
+  venue: 'West Ottawa Golf Club — Holland, MI',
+
+  // Colors per team. `ink` is what type is set in (must survive a dark TV
+  // from 12 feet). `band` is the three-color rope, signature color first.
+  teams: {
+    'Coasties':  { ink: '#FF6A5B', band: ['#E03C31', '#FFFFFF', '#003A63'] },  // the racing stripe
+    'The Guard': { ink: '#58B4E8', band: ['#0077C8', '#C8CDD2', '#002B49'] },  // working blue / hull grey
   },
-  {
-    name: 'The Max',
-    blurb: 'Low net',
-    winners: [
-      { year: 2025, who: 'Michael Cadieux' },
-      { year: 2024, who: 'Ande Scherf' },
-    ],
-    race: p => leaderOf(p, 'Strokeplay'),
-  },
+
+  // Who holds the cup. On a tie the holder retains, so the challenger has to
+  // actually take it off them. null = no holder, a tie is just a tie.
+  holder: 'Coasties',   // returning champs — they retain a tie
+
+  // Points on the table. R1 + R2 are 4 two-man matches each, R3 is 8 singles.
+  // 16 total. Coasties retain at 8; The Guard must reach 8.5 to take it.
+  totalPoints: 16,
+
+  // No individual trophies at this one — just the cup.
+  awards: [],
+};
+
+/* Any team we don't have colors for still has to look deliberate. */
+const FALLBACK = [
+  { ink: '#E3B94F', band: ['#C99A2E', '#EDE7D8', '#5A4A1E'] },
+  { ink: '#5FB3D9', band: ['#2E86AB', '#EDE7D8', '#1B3A4B'] },
 ];
+
+/* Paint the two teams into the stylesheet at runtime. */
+function applyTeamColors(nameA, nameB){
+  const root = document.documentElement;
+  [[nameA, 'mi'], [nameB, 'us']].forEach(([name, slot], i) => {
+    const t = EVENT.teams[name] || FALLBACK[i];
+    root.style.setProperty('--' + slot,       t.band[0]);
+    root.style.setProperty('--' + slot + '-2', t.band[1]);
+    root.style.setProperty('--' + slot + '-3', t.band[2]);
+    root.style.setProperty('--' + slot + '-ink', t.ink);
+  });
+}
+
+const AWARDS = EVENT.awards;
 
 /* Trash talk now comes down inside the payload, posted from talk.html. */
 
@@ -534,7 +557,9 @@ const boardBy = name => (payload.boards || []).find(b => b.name === name);
    to par per round. The two team rows carry the actual cup score. */
 function grossRows(p){
   const rc = (p.boards || []).find(b => b.name === 'Ryder Cup');
-  return rc ? rc.rows.filter(r => r[0] === '-') : [];
+  if (!rc) return [];
+  const known = Object.keys(EVENT.teams);
+  return rc.rows.filter(r => known.indexOf(r[1]) === -1);
 }
 
 /* '+12' -> 12, '-4' -> -4, 'E' -> 0, '' -> null */
@@ -623,7 +648,9 @@ const fmtScore = n => n === 0 ? 'E' : (n > 0 ? '+' + n : String(n));
    ================================================================= */
 function render(){
   const year = (payload.tournament.match(/\b(20\d\d)\b/) || [])[1] || '';
-  document.getElementById('yr').textContent = year;
+  document.getElementById('wordmark').innerHTML =
+    esc(EVENT.title) + ' <span>' + esc(year) + '</span>';
+  document.getElementById('venue').textContent = EVENT.venue;
 
   renderCup();
   renderTickerUrl();
@@ -642,7 +669,12 @@ function renderCup(){
   const cup = document.getElementById('cup');
   if (!rc){ cup.hidden = true; return; }
 
-  const teams = rc.rows.filter(r => r[0] && r[0] !== '-').slice(0,2);
+  // Team rows are the ones whose name is a team. Rank is useless here —
+  // before the first score, every row on this board reads '-'.
+  const known = Object.keys(EVENT.teams);
+  let teams = rc.rows.filter(r => known.indexOf(r[1]) !== -1).slice(0,2);
+  // fall back to rank if the profile doesn't know these teams
+  if (teams.length < 2) teams = rc.rows.filter(r => r[0] && r[0] !== '-').slice(0,2);
   if (teams.length < 2){ cup.hidden = true; return; }
   cup.hidden = false;
 
@@ -656,27 +688,42 @@ function renderCup(){
   document.getElementById('scoreA').textContent = fmtPts(totA);
   document.getElementById('scoreB').textContent = fmtPts(totB);
 
-  const TOTAL  = CONFIG.TOTAL_POINTS;
-  const RETAIN = TOTAL / 2;            // holder needs this
-  const WIN    = RETAIN + 0.5;         // challenger needs this
-  const holder = CONFIG.CUP_HOLDER;
+  applyTeamColors(nameA, nameB);
 
-  // The rope: progress toward the line, not share of what's been won.
+  const TOTAL  = EVENT.totalPoints;
+  const holder = EVENT.holder;
+  const verdict = document.getElementById('cupVerdict');
+  const sub     = document.getElementById('cupSub');
+  const key     = document.getElementById('ropeKey');
+
+  // No known points total (a new event, an unfamiliar format) — then there's
+  // no clinch line to draw, and pretending otherwise would be a lie on a wall.
+  if (!TOTAL){
+    const played = totA + totB;
+    document.getElementById('fillA').style.width = (played ? (totA/played)*50 : 0) + '%';
+    document.getElementById('fillB').style.width = (played ? (totB/played)*50 : 0) + '%';
+    verdict.textContent = totA === totB ? 'All Square'
+      : (totA > totB ? nameA : nameB) + ' by ' + fmtPts(Math.abs(totA - totB));
+    sub.textContent = fmtPts(played) + ' points played';
+    key.innerHTML = '';
+    return;
+  }
+
+  const RETAIN = TOTAL / 2;          // holder needs this
+  const WIN    = RETAIN + 0.5;       // challenger must clear it
+
   document.getElementById('fillA').style.width = Math.min(100, (totA / TOTAL) * 100) + '%';
   document.getElementById('fillB').style.width = Math.min(100, (totB / TOTAL) * 100) + '%';
 
-  const verdict = document.getElementById('cupVerdict');
-  const sub     = document.getElementById('cupSub');
+  key.innerHTML = holder
+    ? '<span>' + esc(holder) + ' holds it — <b>' + fmtPts(RETAIN) + '</b> retains</span>' +
+      '<span>Challenger needs <b>' + fmtPts(WIN) + '</b> to take it</span>'
+    : '<span><b>' + fmtPts(WIN) + '</b> to win it</span>' +
+      '<span><b>' + fmtPts(TOTAL) + '</b> on the table</span>';
 
-  // The line means different things to the two sides. Say so, out loud.
-  document.getElementById('ropeKey').innerHTML =
-    '<span>' + esc(holder) + ' holds it — <b>' + fmtPts(RETAIN) + '</b> retains</span>' +
-    '<span>Challenger needs <b>' + fmtPts(WIN) + '</b> to take it</span>';
-
-  const need = (team, tot) => (team === holder ? RETAIN : WIN) - tot;
+  const need = (team, tot) => (holder && team === holder ? RETAIN : WIN) - tot;
   const needA = need(nameA, totA), needB = need(nameB, totB);
 
-  // Decided?
   if (needA <= 0){
     verdict.textContent = nameA + (nameA === holder && totA < WIN ? ' retains' : ' wins');
     sub.textContent = fmtPts(totA) + ' – ' + fmtPts(totB);
@@ -684,14 +731,9 @@ function renderCup(){
     verdict.textContent = nameB + (nameB === holder && totB < WIN ? ' retains' : ' wins');
     sub.textContent = fmtPts(totB) + ' – ' + fmtPts(totA);
   } else {
-    // Still live. Say what each side has left to do — that's the actual story.
     const played = totA + totB;
-    if (totA === totB){
-      verdict.textContent = 'All Square';
-    } else {
-      const front = totA > totB ? nameA : nameB;
-      verdict.textContent = front + ' by ' + fmtPts(Math.abs(totA - totB));
-    }
+    verdict.textContent = totA === totB ? 'All Square'
+      : (totA > totB ? nameA : nameB) + ' by ' + fmtPts(Math.abs(totA - totB));
     sub.textContent =
       nameA + ' needs ' + fmtPts(needA) + '  ·  ' +
       nameB + ' needs ' + fmtPts(needB) + '  ·  ' +
@@ -730,7 +772,7 @@ function renderTicker(){
 
 function renderBoard(){
   const has = n =>
-    n === 'Honors' ? true :
+    n === 'Honors' ? AWARDS.length > 0 :
     n === 'Cup'    ? !!(payload.cup && payload.cup.cup && payload.cup.cup.length) :
     !!boardBy(n);
 
@@ -762,9 +804,13 @@ function renderBoard(){
   pips.innerHTML = names.map((_, i) =>
     '<div class="pip' + (i === boardIdx % names.length ? ' on' : '') + '"></div>').join('');
 
+  // Drop the team rows — they're the hero up top, not entries in a player list.
+  const known = Object.keys(EVENT.teams);
+  const rows = board.rows.filter(r => known.indexOf(r[1]) === -1);
+
   // 28 names don't fit down one side of a TV. Split them.
-  const half = Math.ceil(board.rows.length / 2);
-  const cols = [board.rows.slice(0, half), board.rows.slice(half)];
+  const half = Math.ceil(rows.length / 2);
+  const cols = [rows.slice(0, half), rows.slice(half)];
 
   grid.innerHTML = cols.map(rows =>
     '<div class="col">' + headRow(board.headers) + rows.map(playerRow).join('') + '</div>'
