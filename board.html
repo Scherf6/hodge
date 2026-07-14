@@ -523,17 +523,63 @@ async function load(){
   if (!CONFIG.API_URL){
     payload = DEMO;
     render();
-    setStamp('demo data — 2025', false);
+    setStamp('demo data', false);
     return;
   }
+
   try{
-    const res = await fetch(CONFIG.API_URL, { cache:'no-store' });
-    payload = await res.json();
+    // A hung fetch is worse than a failed one — it tells you nothing and it
+    // tells you nothing forever. Give up after 15s and say so.
+    const ctl = new AbortController();
+    const bail = setTimeout(() => ctl.abort(), 15000);
+
+    const res = await fetch(CONFIG.API_URL, { cache:'no-store', signal: ctl.signal });
+    clearTimeout(bail);
+
+    const text = await res.text();
+
+    // Apps Script hands back an HTML login page when the deployment isn't
+    // public. It arrives as a 200, so only the body gives it away.
+    if (text.trim().startsWith('<')){
+      throw new Error('The endpoint returned a web page, not JSON — the ' +
+        'deployment is almost certainly not set to "Anyone".');
+    }
+
+    payload = JSON.parse(text);
     render();
     setStamp(payload.live ? 'live' : 'not started', payload.live);
+
   }catch(err){
-    setStamp('reconnecting', false);   // keep the last good board on screen
+    if (payload){
+      setStamp('reconnecting', false);   // we had it once; keep it on screen
+    } else {
+      fail(err);                         // never had it; say why, out loud
+    }
   }
+}
+
+/* Never leave a blank screen with no explanation on it. */
+function fail(err){
+  const msg = err.name === 'AbortError'
+    ? 'The endpoint never answered (15s).'
+    : (err.message || String(err));
+
+  document.getElementById('boardName').textContent = 'Not connected';
+  document.getElementById('grid').innerHTML =
+    '<div class="empty" style="grid-column:1/-1;text-align:left">' +
+      '<div style="color:var(--us-ink);font-weight:600;margin-bottom:1.6vmin">' + esc(msg) + '</div>' +
+      '<div style="font-size:1.8vmin;line-height:1.9;color:var(--dim)">' +
+        'Check, in order:<br>' +
+        '1. Open the /exec URL in an <b>incognito window</b>. Not logged in is what the TV sees.<br>' +
+        '2. Apps Script &rsaquo; Deploy &rsaquo; Manage deployments &rsaquo; <b>Who has access: Anyone</b>. ' +
+           'The default is "Only myself", which works for you and nobody else.<br>' +
+        '3. Run <b>refresh</b> once by hand, and authorize it.<br>' +
+        '4. Editing Code.gs does nothing until you cut a <b>New version</b>.' +
+      '</div>' +
+    '</div>';
+  document.getElementById('pips').innerHTML = '';
+  document.getElementById('stamp').textContent = 'not connected';
+  document.getElementById('dot').classList.add('cold');
 }
 
 function setStamp(text, live){
