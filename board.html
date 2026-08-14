@@ -15,31 +15,32 @@
      --------------------------------------------------------------- */
 
   :root{
-    /* Deep water at dusk. The Hodge board is a pine forest; this one is
-       Lake Michigan at 9pm, which is where these guys actually are. */
-    --board:    #061A2C;
-    --board-2:  #0B2842;
-    --rule:     #1B4368;
-    --bone:     #E8EFF4;   /* cool white — hull paint, not scoreboard paint */
-    --dim:      #6D8CA3;
+    --board:    #0A1411;   /* deep pine, almost black — a dim room at 10pm */
+    --board-2:  #10201A;
+    --rule:     #1E3A30;
+    --bone:     #EDE7D8;   /* old scoreboard paint */
+    --dim:      #6B8078;
     --live:     #4ADE80;
 
-    /* Chrome: ship's brass. Gold is Coast Guard (insignia, the bell) and it's
-       the one warm thing that survives a navy background at distance. */
-    --accent:   #F2B33C;
-    --accent-t: rgba(242,179,60,.14);
+    /* The board's own color. Hodge brass, lifted for a dark background —
+       the same brass as the crest on every other page. Team colors belong
+       to teams; the furniture belongs to the tournament. */
+    --accent:   #E3B94F;
+    --accent-t: rgba(227,185,79,.13);   /* the same, as a wash */
 
-    /* COASTIES — the racing stripe. Reigning champs get the stripe. */
-    --mi:       #E03C31;   /* CG racing stripe red */
-    --mi-2:     #FFFFFF;
-    --mi-3:     #003A63;
-    --mi-ink:   #FF6A5B;   /* stripe red, lifted, for type on navy */
+    /* MICHIGAN — Detroit pro, in one rope.
+       Honolulu Blue leads. Tigers Orange is gorgeous but reads as red from
+       across a room, and USA is already red. It rides in the middle instead. */
+    --mi:       #0076B6;   /* Honolulu Blue — Lions */
+    --mi-2:     #FA4616;   /* Orange — Tigers */
+    --mi-3:     #1D42BA;   /* Royal — Pistons */
+    --mi-ink:   #37A7E6;   /* Honolulu, lifted, for type at distance */
 
-    /* THE GUARD — working blue and hull grey. */
-    --us:       #0077C8;   /* Coast Guard blue */
-    --us-2:     #C8CDD2;   /* hull grey */
-    --us-3:     #002B49;
-    --us-ink:   #58B4E8;
+    /* USA — Old Glory, actual flag values. */
+    --us:       #B22234;   /* Old Glory Red */
+    --us-2:     #FFFFFF;   /* White */
+    --us-3:     #3C3B6E;   /* Old Glory Blue */
+    --us-ink:   #DB3149;   /* flag red is muddy as type on near-black */
   }
 
   *{ box-sizing:border-box; margin:0; padding:0; }
@@ -53,7 +54,7 @@
     display:flex;
     flex-direction:column;
     /* faint vignette so the center reads brighter from a distance */
-    background-image:radial-gradient(ellipse at 50% 35%, #0E3050 0%, var(--board) 70%);
+    background-image:radial-gradient(ellipse at 50% 35%, #14261F 0%, var(--board) 70%);
   }
 
   /* ---------- header ---------- */
@@ -62,18 +63,7 @@
     padding:1.6vmin 2.4vmin;
     border-bottom:2px solid var(--rule);
     flex:0 0 auto;
-    position:relative; overflow:hidden;
   }
-  /* The racing stripe. Canted like the real one — the whole reason anybody
-     recognises a Coast Guard hull from a mile out. */
-  header::before{
-    content:''; position:absolute; top:0; bottom:0; right:14%;
-    width:9vmin; transform:skewX(-26deg);
-    background:linear-gradient(90deg,
-      var(--mi) 0 62%, var(--board) 62% 70%, var(--us-3) 70% 100%);
-    opacity:.9;
-  }
-  header > *{ position:relative; z-index:1; }
   .wordmark{
     font-family:'Anton', Impact, sans-serif;
     font-size:3.1vmin; letter-spacing:.06em; text-transform:uppercase;
@@ -420,6 +410,7 @@
     <nav class="nav">
       <a href="./talk.html">Trash Talk</a>
       <a href="./cup.html">Cup Scoring</a>
+      <a href="./index.html">Recommend</a>
     </nav>
     <span class="dot" id="dot"></span>
     <span class="stamp" id="stamp">connecting</span>
@@ -471,14 +462,14 @@
    ================================================================= */
 const CONFIG = {
   // Paste your Apps Script /exec URL here. Leave empty to run on demo data.
-  API_URL: 'https://script.google.com/macros/s/AKfycbw41dXrwBb3d9GAHY1PDNXRITVbXMMciHWosFOp0oTBMm55mE5J5zZ7BpxDit6scbs/exec',
+  API_URL: '',
 
   ROTATE_MS:  14000,   // how long each board holds on screen
   REFRESH_MS: 60000,   // how often we re-pull from the Sheet
 
   // The Ryder Cup board is the hero; these rotate below it.
   // 'Honors' and 'Cup' aren't Squabbit boards — we build those.
-  ROTATING: ['Cup', 'Ryder Cup'],   // no Skins or Strokeplay at this event
+  ROTATING: ['Cup', 'Skins', 'Strokeplay', 'Honors'],
 
 
 
@@ -493,26 +484,47 @@ const CONFIG = {
    block and the same page runs a different event.
    ================================================================= */
 const EVENT = {
-  title: 'Coast Guard Cup',
-  venue: 'West Ottawa Golf Club — Holland, MI',
+  title: 'Hodge Memorial',
+  venue: "Hawk's Eye · Shanty Creek — Northern Michigan",
 
   // Colors per team. `ink` is what type is set in (must survive a dark TV
   // from 12 feet). `band` is the three-color rope, signature color first.
   teams: {
-    'Coasties':  { ink: '#FF6A5B', band: ['#E03C31', '#FFFFFF', '#003A63'] },  // the racing stripe
-    'The Guard': { ink: '#58B4E8', band: ['#0077C8', '#C8CDD2', '#002B49'] },  // working blue / hull grey
+    'Michigan': { ink: '#37A7E6', band: ['#0076B6', '#FA4616', '#1D42BA'] },  // Lions / Tigers / Pistons
+    'USA':      { ink: '#DB3149', band: ['#B22234', '#FFFFFF', '#3C3B6E'] },  // Old Glory
   },
 
   // Who holds the cup. On a tie the holder retains, so the challenger has to
   // actually take it off them. null = no holder, a tie is just a tie.
-  holder: 'Coasties',   // returning champs — they retain a tie
+  holder: 'Michigan',
 
-  // Points on the table. R1 + R2 are 4 two-man matches each, R3 is 8 singles.
-  // 16 total. Coasties retain at 8; The Guard must reach 8.5 to take it.
-  totalPoints: 16,
+  // Points on the table. null hides the clinch line — correct until we've
+  // confirmed points-per-round for the 2026 five-round format. Once known
+  // (e.g. R1/R2/R3-4/R5 team + singles), set the number and the rope goes live.
+  totalPoints: null,
 
-  // No individual trophies at this one — just the cup.
-  awards: [],
+  // Empty array = no trophy case panel.
+  awards: [
+    {
+      name: "World's #1",
+      blurb: 'Low gross · scramble excluded',
+      winners: [
+        { year: 2025, who: 'Will Crane' },
+        { year: 2024, who: 'Will Crane' },
+        { year: 2023, who: 'Kellen VanDreumel' },
+      ],
+      race: p => lowGross(p),
+    },
+    {
+      name: 'The Max',
+      blurb: 'Low net',
+      winners: [
+        { year: 2025, who: 'Michael Cadieux' },
+        { year: 2024, who: 'Ande Scherf' },
+      ],
+      race: p => leaderOf(p, 'Strokeplay'),   // null until a Strokeplay game exists in 2026
+    },
+  ],
 };
 
 /* Any team we don't have colors for still has to look deliberate. */
