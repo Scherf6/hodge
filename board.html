@@ -230,6 +230,51 @@
   .rd{ text-align:center; color:var(--dim); font-size:1.65vmin; font-variant-numeric:tabular-nums; }
   .tot{ text-align:right; font-weight:600; font-variant-numeric:tabular-nums; }
 
+
+  /* ---------- schedule ---------- */
+  .schedList{ grid-column:1 / -1; display:flex; flex-direction:column; gap:1vmin; }
+  .schedRow{
+    display:grid; grid-template-columns:7vmin 1fr auto auto;
+    align-items:center; gap:2.4vmin;
+    padding:1.6vmin 2vmin;
+    background:rgba(255,255,255,.02);
+    border:1px solid var(--rule); border-left:3px solid var(--accent);
+    border-radius:.5vmin;
+  }
+  .schR{
+    font-family:'Anton', Impact, sans-serif;
+    font-size:3.4vmin; color:var(--accent); line-height:1;
+  }
+  .schCourse{ font-size:2.6vmin; font-weight:600; line-height:1.1; }
+  .schDay{
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:1.7vmin; letter-spacing:.16em; text-transform:uppercase; color:var(--dim);
+    margin-top:.3vmin;
+  }
+  .schFmt{
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:1.8vmin; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--bone); text-align:right; padding-right:1.6vmin;
+    border-right:1px solid var(--rule);
+  }
+  .schHoles{
+    font-family:'Anton', Impact, sans-serif; font-size:3vmin; color:var(--bone);
+    text-align:right; min-width:7vmin; line-height:1;
+  }
+  .schHoles span{
+    display:block; font-family:'Barlow Condensed', sans-serif;
+    font-size:1.3vmin; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); font-weight:600;
+  }
+  @media (max-width: 820px){
+    .schedRow{ grid-template-columns:36px 1fr auto; gap:10px; padding:11px 12px; }
+    .schR{ font-size:20px; }
+    .schCourse{ font-size:15px; }
+    .schDay{ font-size:10px; }
+    .schFmt{ display:none; }
+    .schHoles{ font-size:17px; min-width:0; }
+    .schHoles span{ font-size:8.5px; }
+  }
+
   /* ---------- the Cup ---------- */
   .cuprow{
     grid-template-columns: 3.6vmin 1fr 4vmin 4vmin 4vmin 4vmin 5.4vmin !important;
@@ -469,7 +514,7 @@ const CONFIG = {
 
   // The Ryder Cup board is the hero; these rotate below it.
   // 'Honors' and 'Cup' aren't Squabbit boards — we build those.
-  ROTATING: ['Cup', 'Skins', 'Strokeplay', 'Honors'],
+  ROTATING: ['Schedule', 'Cup', 'Skins', 'Strokeplay', 'Honors'],
 
 
 
@@ -497,6 +542,16 @@ const EVENT = {
   // Who holds the cup. On a tie the holder retains, so the challenger has to
   // actually take it off them. null = no holder, a tie is just a tie.
   holder: 'Michigan',
+
+  // The schedule. Can't be scraped from the public widget, so it lives here.
+  // Pulled from the 2026 export: R3 + R4 are the Summit best-ball/alt-shot halves.
+  schedule: [
+    { r: 'R1', day: 'Fri Sep 11', course: "Hawk's Eye",        holes: 18, note: 'Better Ball' },
+    { r: 'R2', day: 'Fri Sep 11', course: 'Cedar River',        holes: 18, note: 'Better Ball' },
+    { r: 'R3', day: 'Sat Sep 12', course: 'Summit — front',      holes: 9,  note: 'Best Ball' },
+    { r: 'R4', day: 'Sat Sep 12', course: 'Summit — back',       holes: 9,  note: 'Alt Shot' },
+    { r: 'R5', day: 'Sat Sep 12', course: 'The Legend',          holes: 18, note: 'Singles' },
+  ],
 
   // Points on the table. null hides the clinch line — correct until we've
   // confirmed points-per-round for the 2026 five-round format. Once known
@@ -905,8 +960,9 @@ function renderTicker(){
 
 function renderBoard(){
   const has = n =>
-    n === 'Honors' ? AWARDS.length > 0 :
-    n === 'Cup'    ? !!(payload.cup && payload.cup.cup && payload.cup.cup.length) :
+    n === 'Schedule' ? (EVENT.schedule && EVENT.schedule.length > 0) :
+    n === 'Honors'   ? AWARDS.length > 0 :
+    n === 'Cup'      ? !!(payload.cup && payload.cup.cup && payload.cup.cup.length) :
     !!boardBy(n);
 
   const names = CONFIG.ROTATING.filter(has);
@@ -926,6 +982,7 @@ function renderBoard(){
       renderBoard();
     });
 
+    if (current === 'Schedule'){ renderSchedule(grid); return; }
     if (current === 'Honors'){ renderHonors(grid); return; }
     if (current === 'Cup'){ renderCup_(grid); return; }
   }
@@ -1026,6 +1083,29 @@ function renderCup_(grid){
       '</div>';
     }).join('') + '</div>'
   ).join('');
+
+  grid.style.animation = 'none'; void grid.offsetWidth; grid.style.animation = '';
+}
+
+/* The card for the weeks before a ball is struck: what's coming, in order. */
+function renderSchedule(grid){
+  document.getElementById('boardName').textContent = 'The Schedule';
+  const S = EVENT.schedule;
+
+  grid.innerHTML =
+    '<div class="col schedList">' +
+    S.map(row =>
+      '<div class="schedRow">' +
+        '<div class="schR">' + esc(row.r) + '</div>' +
+        '<div class="schMain">' +
+          '<div class="schCourse">' + esc(row.course) + '</div>' +
+          '<div class="schDay">' + esc(row.day) + '</div>' +
+        '</div>' +
+        '<div class="schFmt">' + esc(row.note || '') + '</div>' +
+        '<div class="schHoles">' + row.holes + '<span>holes</span></div>' +
+      '</div>'
+    ).join('') +
+    '</div>';
 
   grid.style.animation = 'none'; void grid.offsetWidth; grid.style.animation = '';
 }
