@@ -45,6 +45,38 @@ the tournament is unaffected.
 
 ---
 
+## The pairings
+
+`board.html` shows Round 1 and Round 2 matches as their own rotating boards.
+Like the schedule, they **can't be scraped from the public widget** — pairings
+only exist in the signed-in app under **Schedule → Ryder Cup matches**. So they
+live in `EVENT.matches`, keyed by round:
+
+```javascript
+matches: {
+  R1: [
+    { USA: [['Luke Westerhouse', 1], ['Charle Brown', 1]],
+      Michigan: [['Will Crane', 0], ['Chris McGee', 0]] },
+    ...
+  ],
+}
+```
+
+Sides are keyed by **team name, not by screen position**. Squabbit's own match
+cards don't put a given team consistently on the left — R1 match 5 is flipped
+relative to the other eleven — so the page normalizes: it reads which team the
+Cup rope has on the left and lays the pairings out to match. Nobody at the TV
+has to switch sides between panels.
+
+The number after a name is the strokes Squabbit gave that player for that
+round's format — low in the scramble, full course handicap in best ball. A zero
+renders as nothing rather than a column of `(0)`.
+
+To add R3–R5: drop them into `EVENT.matches` and add `'Matches R3'` etc. to
+`CONFIG.ROTATING`. A round with no data is skipped automatically.
+
+---
+
 ## The Hodge Cup
 
 An overall winner, on top of World's #1 (low gross) and The Max (low net).
