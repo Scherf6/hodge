@@ -205,7 +205,9 @@
 
   .hrow, .prow{
     display:grid;
-    grid-template-columns: 3.6vmin 1fr repeat(4, 3.6vmin) 5vmin;
+    /* --rds is the number of round columns; renderBoard sets it from the
+       board's own headers, so a 4-round year and a 5-round year both fit. */
+    grid-template-columns: 3.6vmin 1fr repeat(var(--rds, 4), 3.6vmin) 5vmin;
     gap:.8vmin; align-items:center;
     padding:.62vmin .8vmin;
   }
@@ -524,7 +526,7 @@
     .col + .col .hrow{ display:none; }
 
     .hrow, .prow{
-      grid-template-columns: 26px 1fr 26px 26px 26px 26px 38px;
+      grid-template-columns: 26px 1fr repeat(var(--rds, 4), 26px) 38px;
       gap:4px; padding:7px 4px;
     }
     .hrow{ font-size:9.5px; letter-spacing:.1em; }
@@ -1174,8 +1176,12 @@ function renderBoard(){
   const half = Math.ceil(rows.length / 2);
   const cols = [rows.slice(0, half), rows.slice(half)];
 
+  const n = roundCount(board.headers);
+  grid.style.setProperty('--rds', n);
+
   grid.innerHTML = cols.map(rows =>
-    '<div class="col">' + headRow(board.headers) + rows.map(playerRow).join('') + '</div>'
+    '<div class="col">' + headRow(board.headers) +
+    rows.map(r => playerRow(r, n)).join('') + '</div>'
   ).join('');
 
   // restart the entrance animation
@@ -1317,25 +1323,33 @@ function renderSchedule(grid){
   grid.style.animation = 'none'; void grid.offsetWidth; grid.style.animation = '';
 }
 
+/* Rows are [rank, name, ...rounds, total]. The round count is whatever the
+   board's headers say — four in 2025, five in 2026 — so nothing here is
+   hardcoded to a format. Short rows are padded so the columns stay aligned. */
+const roundCount = headers => Math.max(0, (headers || []).length - 3);
+
 function headRow(h){
+  const n = roundCount(h);
   return '<div class="hrow">' +
     '<div style="text-align:right">' + esc(h[0]) + '</div>' +
     '<div>' + esc(h[1]) + '</div>' +
-    h.slice(2,6).map(x => '<div style="text-align:center">' + esc(x) + '</div>').join('') +
-    '<div style="text-align:right">' + esc(h[6] || 'Tot') + '</div>' +
+    pad(h.slice(2, 2 + n), n).map(x => '<div style="text-align:center">' + esc(x) + '</div>').join('') +
+    '<div style="text-align:right">' + esc(h[h.length - 1] || 'Tot') + '</div>' +
   '</div>';
 }
 
-function playerRow(r){
+function playerRow(r, n){
   const rank = (r[0] || '').replace('T','');
   const cls  = rank === '1' ? ' p1' : rank === '2' ? ' p2' : rank === '3' ? ' p3' : '';
   return '<div class="prow' + cls + '">' +
     '<div class="rk">' + esc(r[0]) + '</div>' +
     '<div class="nm">' + esc(r[1]) + '</div>' +
-    r.slice(2,6).map(x => '<div class="rd">' + esc(x) + '</div>').join('') +
-    '<div class="tot">' + esc(r[6] || '') + '</div>' +
+    pad(r.slice(2, 2 + n), n).map(x => '<div class="rd">' + esc(x) + '</div>').join('') +
+    '<div class="tot">' + esc(r[r.length - 1] || '') + '</div>' +
   '</div>';
 }
+
+const pad = (arr, n) => arr.concat(new Array(Math.max(0, n - arr.length)).fill(''));
 
 const esc = s => String(s == null ? '' : s)
   .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
