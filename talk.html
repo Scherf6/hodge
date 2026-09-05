@@ -171,6 +171,22 @@
   /* ── The SQUABBIT script's /exec URL. NOT the recommend-a-golfer one. ── */
   const ENDPOINT = "";
 
+  /* The field, as a fallback.
+
+     The live roster is derived from the leaderboard, which doesn't exist until
+     the first round is scored — so without this the picker is empty for the
+     entire buildup, which is exactly when the talking is best. Scraped names
+     win when they arrive; this only fills the gap. Sorted by last name to match
+     the board. Update it when the pairings change (board.html EVENT.matches). */
+  const ROSTER = [
+    'Dan Abbott', 'Jason Bergman', 'Drew Brackett', 'Charle Brown',
+    'Michael Cadieux', 'Jon Collins', 'Will Crane', 'Rob Crane',
+    'Blake Desmarteau', 'Ross Desnoyers', 'Brad Desnoyers', 'Jesse Frifeldt',
+    'Ross Gray', 'Josh Herder', 'Davis McFarlane', 'Chris McGee',
+    'Tom Monaweck', 'Adam Morocco', 'Ande Scherf', 'Maxwell Smith',
+    'Joe Suchecki', 'Kellen VanDreumel', 'Blake Vipond', 'Luke Westerhouse',
+  ];
+
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -180,7 +196,7 @@
   /* ---- load roster + feed ---- */
   async function load(){
     if (!ENDPOINT){
-      fail('No endpoint set. Paste the Squabbit script /exec URL into ENDPOINT.');
+      fail('No endpoint set. Paste the Squabbit script /exec URL into ENDPOINT.', true);
       return;
     }
     try{
@@ -193,14 +209,23 @@
     }
   }
 
-  function fail(msg){
-    $('who').innerHTML = '<option value="">—</option>';
+  /* The picker is never the thing that's broken, so it stays usable even when
+     the board is unreachable. But if there's nowhere to post to, say so and
+     take the button away rather than letting someone type out a good one and
+     lose it. */
+  function fail(msg, dead){
+    fillRoster([]);
     $('feed').innerHTML = '<div class="quiet">' + esc(msg) + '</div>';
+    if (dead){
+      $('send').disabled = true;
+      $('send').textContent = 'Not connected';
+    }
   }
 
-  /* The roster comes off the leaderboard itself, so there's no list to maintain.
+  /* Scraped names when the leaderboard has them, ROSTER until it does.
      Remembers you after the first post — nobody wants to find their name twice. */
-  function fillRoster(names){
+  function fillRoster(scraped){
+    const names = (scraped && scraped.length) ? scraped : ROSTER;
     const saved = localStorage.getItem('hodge_name') || '';
     $('who').innerHTML =
       '<option value="">Find your name…</option>' +
