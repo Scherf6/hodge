@@ -344,6 +344,54 @@
     .schHoles span{ font-size:8.5px; }
   }
 
+  /* ---------- ryder cup matches ---------- */
+  .mtcList{
+    grid-column:1 / -1; display:grid; grid-template-columns:1fr 1fr;
+    gap:1.8vmin 2.6vmin; align-content:start;
+  }
+  .mtcCard{
+    display:grid; grid-template-columns:5vmin 1fr auto 1fr;
+    align-items:center; column-gap:1.6vmin; row-gap:.4vmin;
+    padding:1.6vmin 1.8vmin;
+    background:rgba(255,255,255,.02);
+    border:1px solid var(--rule); border-radius:.5vmin;
+  }
+  .mtcNo{
+    grid-column:1; grid-row:1 / span 2;
+    font-family:'Anton', Impact, sans-serif; font-size:3.4vmin;
+    color:var(--accent); line-height:1; text-align:center;
+  }
+  .mtcVs{
+    grid-column:3; grid-row:1 / span 2;
+    font-family:'Barlow Condensed', sans-serif; font-size:1.6vmin; font-weight:700;
+    letter-spacing:.12em; text-transform:uppercase; color:var(--dim); text-align:center;
+  }
+  /* Names hug the 'vs' from both sides; strokes ride the outside edges. */
+  .mtcP{ display:flex; align-items:baseline; gap:.8vmin; min-width:0; line-height:1.2; }
+  .mtcP.mi{ grid-column:2; justify-content:flex-end; color:var(--mi-ink); }
+  .mtcP.us{ grid-column:4; justify-content:flex-start; color:var(--us-ink); }
+  .mtcNm{ font-size:2.4vmin; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mtcHc{
+    font-family:'Barlow Condensed', sans-serif; font-size:1.6vmin; font-weight:600;
+    color:var(--dim); flex:none;
+  }
+  .mtcMeta{
+    grid-column:1 / -1; display:flex; justify-content:center; gap:1.6vmin;
+    font-family:'Barlow Condensed', sans-serif; font-size:1.7vmin; font-weight:700;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--dim);
+    padding-bottom:.4vmin;
+  }
+  .mtcMeta b{ color:var(--accent); font-weight:700; }
+  @media (max-width: 820px){
+    .mtcList{ grid-template-columns:1fr; gap:8px; }
+    .mtcCard{ grid-template-columns:24px 1fr auto 1fr; column-gap:8px; padding:8px 10px; }
+    .mtcNo{ font-size:17px; }
+    .mtcVs{ font-size:9px; }
+    .mtcNm{ font-size:13px; }
+    .mtcHc{ font-size:10px; }
+    .mtcMeta{ font-size:10px; gap:10px; }
+  }
+
   /* ---------- the Cup ---------- */
   .cuprow{
     grid-template-columns: 3.6vmin 1fr 4vmin 4vmin 4vmin 4vmin 5.4vmin !important;
@@ -605,7 +653,7 @@ const CONFIG = {
 
   // The Ryder Cup board is the hero; these rotate below it.
   // 'Honors' and 'Cup' aren't Squabbit boards — we build those.
-  ROTATING: ['Schedule', 'Cup', 'Skins', 'Strokeplay', 'Honors'],
+  ROTATING: ['Matches R1', 'Matches R2', 'Schedule', 'Cup', 'Skins', 'Strokeplay', 'Honors'],
 
 
 
@@ -637,12 +685,37 @@ const EVENT = {
   // The schedule. Can't be scraped from the public widget, so it lives here.
   // Pulled from the 2026 export: R3 + R4 are the Summit best-ball/alt-shot halves.
   schedule: [
-    { r: 'R1', day: 'Fri Sep 11', course: "Hawk's Eye",        holes: 18, note: 'Better Ball' },
-    { r: 'R2', day: 'Fri Sep 11', course: 'Cedar River',        holes: 18, note: 'Better Ball' },
+    { r: 'R1', day: 'Fri Sep 11', course: "Hawk's Eye",        holes: 18, note: 'Scramble' },
+    { r: 'R2', day: 'Fri Sep 11', course: 'Cedar River',        holes: 18, note: 'Best Ball' },
     { r: 'R3', day: 'Sat Sep 12', course: 'Summit — front',      holes: 9,  note: 'Best Ball' },
     { r: 'R4', day: 'Sat Sep 12', course: 'Summit — back',       holes: 9,  note: 'Alt Shot' },
     { r: 'R5', day: 'Sat Sep 12', course: 'The Legend',          holes: 18, note: 'Singles' },
   ],
+
+  // The Ryder Cup pairings. Not on Squabbit's public widget — these come out of
+  // the signed-in app (Schedule -> Ryder Cup matches). Sides are normalized to
+  // USA-left / Michigan-right regardless of the order Squabbit happens to show
+  // them in. The number after a name is the strokes Squabbit gave them for that
+  // round's format: tiny in the scramble, full course handicap in best ball.
+  // Add R3-R5 here and to CONFIG.ROTATING as they're set.
+  matches: {
+    R1: [
+      { USA: [['Luke Westerhouse', 1], ['Charle Brown', 1]],   Michigan: [['Will Crane', 0], ['Chris McGee', 0]] },
+      { USA: [['Jason Bergman', 0], ['Josh Herder', 0]],       Michigan: [['Ande Scherf', 0], ['Blake Desmarteau', 0]] },
+      { USA: [['Adam Morocco', 0], ['Jesse Frifeldt', 0]],     Michigan: [['Kellen VanDreumel', 3], ['Maxwell Smith', 3]] },
+      { USA: [['Ross Desnoyers', 0], ['Ross Gray', 0]],        Michigan: [['Dan Abbott', 5], ['Michael Cadieux', 5]] },
+      { USA: [['Davis McFarlane', 0], ['Drew Brackett', 0]],   Michigan: [['Tom Monaweck', 2], ['Rob Crane', 2]] },
+      { USA: [['Brad Desnoyers', 0], ['Blake Vipond', 0]],     Michigan: [['Joe Suchecki', 4], ['Jon Collins', 4]] },
+    ],
+    R2: [
+      { USA: [['Brad Desnoyers', 25], ['Luke Westerhouse', 4]], Michigan: [['Maxwell Smith', 25], ['Chris McGee', 25]] },
+      { USA: [['Adam Morocco', 9], ['Charle Brown', 24]],       Michigan: [['Tom Monaweck', 18], ['Michael Cadieux', 21]] },
+      { USA: [['Blake Vipond', 4], ['Josh Herder', 16]],        Michigan: [['Jon Collins', 25], ['Kellen VanDreumel', 2]] },
+      { USA: [['Davis McFarlane', 8], ['Ross Desnoyers', 14]],  Michigan: [['Will Crane', 1], ['Blake Desmarteau', 17]] },
+      { USA: [['Jason Bergman', 21], ['Ross Gray', 9]],         Michigan: [['Joe Suchecki', 13], ['Dan Abbott', 19]] },
+      { USA: [['Drew Brackett', 15], ['Jesse Frifeldt', 2]],    Michigan: [['Ande Scherf', 21], ['Rob Crane', 13]] },
+    ],
+  },
 
   // Points on the table. null hides the clinch line — correct until we've
   // confirmed points-per-round for the 2026 five-round format. Once known
@@ -692,6 +765,10 @@ function applyTeamColors(nameA, nameB){
 }
 
 const AWARDS = EVENT.awards;
+
+/* Which team the Cup rope has on the left. renderCup sets it from the board;
+   every other panel follows it so the field never has to switch sides. */
+let cupTeams = Object.keys(EVENT.teams);
 
 /* Trash talk now comes down inside the payload, posted from talk.html. */
 
@@ -967,6 +1044,7 @@ function renderCup(){
   document.getElementById('scoreA').textContent = fmtPts(totA);
   document.getElementById('scoreB').textContent = fmtPts(totB);
 
+  cupTeams = [nameA, nameB];
   applyTeamColors(nameA, nameB);
 
   const TOTAL  = EVENT.totalPoints;
@@ -1051,6 +1129,7 @@ function renderTicker(){
 
 function renderBoard(){
   const has = n =>
+    /^Matches /.test(n) ? !!(EVENT.matches && (EVENT.matches[n.slice(8)] || []).length) :
     n === 'Schedule' ? (EVENT.schedule && EVENT.schedule.length > 0) :
     n === 'Honors'   ? AWARDS.length > 0 :
     n === 'Cup'      ? !!(payload.cup && payload.cup.cup && payload.cup.cup.length) :
@@ -1073,6 +1152,7 @@ function renderBoard(){
       renderBoard();
     });
 
+    if (/^Matches /.test(current)){ renderMatches(grid, current.slice(8)); return; }
     if (current === 'Schedule'){ renderSchedule(grid); return; }
     if (current === 'Honors'){ renderHonors(grid); return; }
     if (current === 'Cup'){ renderCup_(grid); return; }
@@ -1179,6 +1259,49 @@ function renderCup_(grid){
 }
 
 /* The card for the weeks before a ball is struck: what's coming, in order. */
+/* The pairings. Two a side, USA left, Michigan right — same reading order as
+   the rope up top, so nobody has to translate. */
+function renderMatches(grid, key){
+  const [lt, rt] = cupTeams;
+  const list = ((EVENT.matches && EVENT.matches[key]) || [])
+    .filter(m => m && m[lt] && m[rt]);
+  const leg  = (EVENT.schedule || []).find(r => r.r === key) || {};
+
+  document.getElementById('boardName').textContent = key + ' Matches';
+
+  // 'mi' and 'us' are the stylesheet's left and right slots, not team names —
+  // applyTeamColors paints whichever team is actually on each side into them.
+  const leftTeam = lt, rightTeam = rt;
+  const side = (p, cls) =>
+    '<div class="mtcP ' + cls + '">' +
+      (cls === 'mi' ? '<span class="mtcHc">' + strokes(p[1]) + '</span>' : '') +
+      '<span class="mtcNm">' + esc(p[0]) + '</span>' +
+      (cls === 'us' ? '<span class="mtcHc">' + strokes(p[1]) + '</span>' : '') +
+    '</div>';
+
+  grid.innerHTML =
+    '<div class="mtcList">' +
+      '<div class="mtcMeta">' +
+        [leg.course, leg.note, leg.day].filter(Boolean).map(esc).join(' <b>·</b> ') +
+      '</div>' +
+      list.map((m, i) =>
+        '<div class="mtcCard">' +
+          '<div class="mtcNo">' + (i + 1) + '</div>' +
+          side(m[leftTeam][0], 'mi') +
+          '<div class="mtcVs">vs</div>' +
+          side(m[rightTeam][0], 'us') +
+          side(m[leftTeam][1], 'mi') +
+          side(m[rightTeam][1], 'us') +
+        '</div>'
+      ).join('') +
+    '</div>';
+
+  grid.style.animation = 'none'; void grid.offsetWidth; grid.style.animation = '';
+}
+
+/* A zero is noise on a scramble board — show nothing rather than a column of 0s. */
+const strokes = n => (n ? '(' + n + ')' : '');
+
 function renderSchedule(grid){
   document.getElementById('boardName').textContent = 'The Schedule';
   const S = EVENT.schedule;
