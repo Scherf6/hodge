@@ -359,12 +359,12 @@
     border:1px solid var(--rule); border-radius:.5vmin;
   }
   .mtcNo{
-    grid-column:1; grid-row:1 / span 2;
+    grid-column:1; grid-row:1 / -1;
     font-family:'Anton', Impact, sans-serif; font-size:3.4vmin;
     color:var(--accent); line-height:1; text-align:center;
   }
   .mtcVs{
-    grid-column:3; grid-row:1 / span 2;
+    grid-column:3; grid-row:1 / -1;
     font-family:'Barlow Condensed', sans-serif; font-size:1.6vmin; font-weight:700;
     letter-spacing:.12em; text-transform:uppercase; color:var(--dim); text-align:center;
   }
@@ -648,7 +648,7 @@
    ================================================================= */
 const CONFIG = {
   // Paste your Apps Script /exec URL here. Leave empty to run on demo data.
-  API_URL: '',
+  API_URL: 'https://script.google.com/macros/s/AKfycbxc_h4mfWR2WduDSphGVkoi2zp-vXI-JHCKTHpBUY6EIjhFU_ylJgDG0MhAjOS1ZoLOhw/exec',
 
   ROTATE_MS:  14000,   // how long each board holds on screen
   REFRESH_MS: 60000,   // how often we re-pull from the Sheet
@@ -719,10 +719,21 @@ const EVENT = {
     ],
   },
 
-  // Points on the table. null hides the clinch line — correct until we've
-  // confirmed points-per-round for the 2026 five-round format. Once known
-  // (e.g. R1/R2/R3-4/R5 team + singles), set the number and the rope goes live.
-  totalPoints: null,
+  // Points on the table. Every match is worth exactly 1 point, so the total is
+  // just the number of matches — and we can count those ourselves the moment
+  // every round's pairings are in. Add R3-R5 to `matches` below and the clinch
+  // line lights up on its own; no second number to remember to change.
+  //
+  // Until then this stays null, which hides the clinch line. That's deliberate:
+  // retention math built on an assumed total is worse than no retention math,
+  // because it looks authoritative on a wall.
+  get totalPoints(){
+    const rounds = this.schedule || [];
+    const m = this.matches || {};
+    if (!rounds.length) return null;
+    if (!rounds.every(r => (m[r.r] || []).length)) return null;
+    return rounds.reduce((n, r) => n + m[r.r].length, 0);
+  },
 
   // Empty array = no trophy case panel.
   awards: [
@@ -1286,16 +1297,25 @@ function renderMatches(grid, key){
       list.map((m, i) =>
         '<div class="mtcCard">' +
           '<div class="mtcNo">' + (i + 1) + '</div>' +
-          side(m[leftTeam][0], 'mi') +
           '<div class="mtcVs">vs</div>' +
-          side(m[rightTeam][0], 'us') +
-          side(m[leftTeam][1], 'mi') +
-          side(m[rightTeam][1], 'us') +
+          pairUp(m[leftTeam], m[rightTeam]).map(([l, r]) =>
+            (l ? side(l, 'mi') : '<div class="mtcP mi"></div>') +
+            (r ? side(r, 'us') : '<div class="mtcP us"></div>')
+          ).join('') +
         '</div>'
       ).join('') +
     '</div>';
 
   grid.style.animation = 'none'; void grid.offsetWidth; grid.style.animation = '';
+}
+
+/* Two a side in the team rounds, one a side in singles. Zip the two sides into
+   rows so the card lays out either way — R5 is a foursomes card with one line. */
+function pairUp(left, right){
+  const n = Math.max(left.length, right.length);
+  const out = [];
+  for (let i = 0; i < n; i++) out.push([left[i], right[i]]);
+  return out;
 }
 
 /* A zero is noise on a scramble board — show nothing rather than a column of 0s. */
