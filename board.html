@@ -658,7 +658,7 @@ const CONFIG = {
 
 
   // Rounds to drop from World's #1 (1-indexed), e.g. [3].
-  // null = detect it from the scores. 2025's R3 was the 2-man scramble.
+  // null = detect it from the scores. In 2026 R1 is the 2-man scramble.
   SCRAMBLE_ROUNDS: null,
 };
 
@@ -772,50 +772,43 @@ let cupTeams = Object.keys(EVENT.teams);
 
 /* Trash talk now comes down inside the payload, posted from talk.html. */
 
-/* Demo payload — the real 2025 board, so this thing renders before it's wired. */
+/* Demo payload — the 2026 board at the first tee: the field is set, nothing
+   is played. Replaced by the live Sheet the moment CONFIG.API_URL is filled. */
 const DEMO = {
-  tournament: 'Hodge Memorial 2025', live: true, fetchedAt: new Date().toISOString(),
-  talk: [
-    { name:'Tom Monaweck', message:'Cadieux played the Summit like he owed it money.' },
-    { name:'Ande Scherf',  message:'Max Smith opens +38 at Hawk\'s Eye and still wins 10 skins. Explain that.' },
-    { name:'Will Crane',   message:'Jon Collins has now three-putted on four separate golf courses.' },
-  ],
+  tournament: 'Hodge Memorial 2026', live: false, fetchedAt: new Date().toISOString(),
+  talk: [],
   boards: [
-    { name:'Ryder Cup', headers:['#','Name','R1','R2','R3','R4','Tot'], rows:[
-      ['T1','Michigan','4','5','3','5.5','17.5'],
-      ['T1','USA','3','2','4','8.5','17.5'],
+    { name:'Ryder Cup', headers:['#','Name','R1','R2','R3','R4','R5','Tot'], rows:[
+      ['T1','Michigan','0','0','0','0','0','0'],
+      ['T1','USA','0','0','0','0','0','0'],
     ]},
-    { name:'Skins', headers:['#','Name','R1','R2','R3','R4','Tot'], rows:[
-      ['1','Jason Bergman','0','0','11','2','13'],['2','Joe Suchecki','6','1','0','3','10'],
-      ['3','Max Smith','0','0','8','2','10'],['4','Kellen VanDreumel','3','5','0','1','9'],
-      ['5','Michael Cadieux','3','3','0','0','6'],['6','Drew Brackett','0','0','0','5','5'],
-      ['T7','Chris McGee','0','4','0','0','4'],['T7','Tom Monaweck','0','4','0','0','4'],
-      ['9','Pat Brackett','0','0','0','3','3'],['10','Jeff Simmons','0','0','0','2','2'],
-      ['11','Luke Westerhouse','2','0','0','0','2'],['T12','Brad Desnoyers','1','0','0','0','1'],
-      ['T12','Jon Collins','0','0','1','0','1'],['T12','Rob Crane','1','0','0','0','1'],
-      ['T15','Adam Morocco','0','0','0','0','0'],['T15','Josh Herder','0','0','0','0','0'],
-      ['T15','Will Crane','0','0','0','0','0'],['T15','Gary Aschcraft','0','0','0','0','0'],
-      ['T15','Ross Desnoyers','0','0','0','0','0'],['T15','Ande Scherf','0','0','0','0','0'],
-      ['T15','Jesse Frifeldt','0','0','0','0','0'],['T15','Blake Vipond','0','0','0','0','0'],
-      ['T15','Jim Brackett','0','0','0','0','0'],['T15','Dan Abbott','0','0','0','0','0'],
-      ['T15','Jeff Hauter','0','0','0','0','0'],['T15','Ross Gray','0','0','0','0','0'],
-      ['T15','Davis McFarlane','0','0','0','0','0'],['T15','Blake Desmarteau','0','0','0','0','0'],
+    { name:'Skins', headers:['#','Name','R1','R2','R3','R4','R5','Tot'], rows:[
+      ['T1','Dan Abbott','0','0','0','0','0','0'],['T1','Jason Bergman','0','0','0','0','0','0'],
+      ['T1','Drew Brackett','0','0','0','0','0','0'],['T1','Charle Brown','0','0','0','0','0','0'],
+      ['T1','Michael Cadieux','0','0','0','0','0','0'],['T1','Jon Collins','0','0','0','0','0','0'],
+      ['T1','Will Crane','0','0','0','0','0','0'],['T1','Rob Crane','0','0','0','0','0','0'],
+      ['T1','Blake Desmarteau','0','0','0','0','0','0'],['T1','Ross Desnoyers','0','0','0','0','0','0'],
+      ['T1','Brad Desnoyers','0','0','0','0','0','0'],['T1','Jesse Frifeldt','0','0','0','0','0','0'],
+      ['T1','Ross Gray','0','0','0','0','0','0'],['T1','Josh Herder','0','0','0','0','0','0'],
+      ['T1','Davis McFarlane','0','0','0','0','0','0'],['T1','Chris McGee','0','0','0','0','0','0'],
+      ['T1','Tom Monaweck','0','0','0','0','0','0'],['T1','Adam Morocco','0','0','0','0','0','0'],
+      ['T1','Ande Scherf','0','0','0','0','0','0'],['T1','Maxwell Smith','0','0','0','0','0','0'],
+      ['T1','Joe Suchecki','0','0','0','0','0','0'],['T1','Kellen VanDreumel','0','0','0','0','0','0'],
+      ['T1','Blake Vipond','0','0','0','0','0','0'],['T1','Luke Westerhouse','0','0','0','0','0','0'],
     ]},
-    { name:'Strokeplay', headers:['#','Name','R1','R2','R3','R4','Tot'], rows:[
-      ['1','Michael Cadieux','-8','+1','-26','+4','-29'],['2','Tom Monaweck','+8','-4','-19','-3','-18'],
-      ['3','Jason Bergman','+1','+1','-23','+3','-18'],['4','Davis McFarlane','-4','-1','-9','+2','-12'],
-      ['5','Josh Herder','-1','-1','-17','+10','-9'],['6','Joe Suchecki','E','-3','-4','+2','-5'],
-      ['7','Pat Brackett','+6','-1','-15','+6','-4'],['8','Drew Brackett','-2','+8','-14','+5','-3'],
-      ['9','Adam Morocco','+8','+8','-17','-1','-2'],['10','Kellen VanDreumel','E','E','-4','+3','-1'],
-      ['11','Ross Gray','-2','+1','+2','+1','+2'],['12','Will Crane','E','-1','-2','+5','+2'],
-      ['13','Ross Desnoyers','+1','+6','-12','+8','+3'],['14','Dan Abbott','+6','+7','-11','+1','+3'],
-      ['15','Ande Scherf','+11','+2','-11','+2','+4'],['16','Jesse Frifeldt','+7','+8','-8','E','+7'],
-      ['17','Blake Desmarteau','+2','+12','-18','+11','+7'],['18','Brad Desnoyers','+10','+12','-21','+8','+9'],
-      ['19','Jeff Simmons','+2','+8','-5','+5','+10'],['20','Jon Collins','+17','+11','-27','+12','+13'],
-      ['21','Jim Brackett','+8','+16','-22','+11','+13'],['22','Jeff Hauter','+9','+9','-13','+9','+14'],
-      ['23','Gary Aschcraft','+2','+11','-14','+16','+15'],['24','Luke Westerhouse','+6','+13','-7','+7','+19'],
-      ['25','Blake Vipond','+11','+8','E','+2','+21'],['26','Rob Crane','+13','+10','-11','+10','+22'],
-      ['27','Chris McGee','+7','+23','-16','+9','+23'],['28','Max Smith','+23','+11','-14','+3','+23'],
+    { name:'Strokeplay', headers:['#','Name','R1','R2','R3','R4','R5','Tot'], rows:[
+      ['-','Dan Abbott','-','-','-','-','-','-'],['-','Jason Bergman','-','-','-','-','-','-'],
+      ['-','Drew Brackett','-','-','-','-','-','-'],['-','Charle Brown','-','-','-','-','-','-'],
+      ['-','Michael Cadieux','-','-','-','-','-','-'],['-','Jon Collins','-','-','-','-','-','-'],
+      ['-','Will Crane','-','-','-','-','-','-'],['-','Rob Crane','-','-','-','-','-','-'],
+      ['-','Blake Desmarteau','-','-','-','-','-','-'],['-','Ross Desnoyers','-','-','-','-','-','-'],
+      ['-','Brad Desnoyers','-','-','-','-','-','-'],['-','Jesse Frifeldt','-','-','-','-','-','-'],
+      ['-','Ross Gray','-','-','-','-','-','-'],['-','Josh Herder','-','-','-','-','-','-'],
+      ['-','Davis McFarlane','-','-','-','-','-','-'],['-','Chris McGee','-','-','-','-','-','-'],
+      ['-','Tom Monaweck','-','-','-','-','-','-'],['-','Adam Morocco','-','-','-','-','-','-'],
+      ['-','Ande Scherf','-','-','-','-','-','-'],['-','Maxwell Smith','-','-','-','-','-','-'],
+      ['-','Joe Suchecki','-','-','-','-','-','-'],['-','Kellen VanDreumel','-','-','-','-','-','-'],
+      ['-','Blake Vipond','-','-','-','-','-','-'],['-','Luke Westerhouse','-','-','-','-','-','-'],
     ]},
   ]
 };
