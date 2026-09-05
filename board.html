@@ -898,18 +898,30 @@ function fail(err){
   document.getElementById('dot').classList.add('cold');
 }
 
+/* The scraper runs every 5 minutes, so anything much older than that means the
+   pipeline has stopped — a dead trigger, a lapsed authorization, Squabbit down.
+   The payload still says live:true, because it WAS live when it was captured.
+   A green pulsing dot over hours-old scores is the worst thing this board can
+   do: it's confidently wrong, and nobody goes looking for a bug in a board that
+   says it's fine. Past the cutoff, say so and kill the pulse. */
+const STALE_MS = 15 * 60 * 1000;
+
 function setStamp(text, live){
   const stamp = document.getElementById('stamp');
-  const when  = payload && payload.fetchedAt ? ' · ' + ago(payload.fetchedAt) : '';
-  stamp.textContent = text + when;
-  document.getElementById('dot').classList.toggle('cold', !live);
+  const at    = payload && payload.fetchedAt ? new Date(payload.fetchedAt) : null;
+  const stale = !!at && (Date.now() - at.getTime()) > STALE_MS;
+  const when  = at ? ' · ' + ago(payload.fetchedAt) : '';
+
+  stamp.textContent = (stale ? 'stale' : text) + when;
+  document.getElementById('dot').classList.toggle('cold', !live || stale);
 }
 
 function ago(iso){
   const mins = Math.round((Date.now() - new Date(iso)) / 60000);
-  if (mins < 1)  return 'just now';
-  if (mins < 60) return mins + 'm ago';
-  return Math.round(mins/60) + 'h ago';
+  if (mins < 1)    return 'just now';
+  if (mins < 60)   return mins + 'm ago';
+  if (mins < 2880) return Math.round(mins/60) + 'h ago';
+  return Math.round(mins/1440) + 'd ago';   // '1294h ago' means nothing to anyone
 }
 
 const boardBy = name => (payload.boards || []).find(b => b.name === name);
